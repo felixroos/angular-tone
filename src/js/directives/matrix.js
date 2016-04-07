@@ -16,10 +16,6 @@
         scope.height = typeof scope.height === "number" ? scope.height : 4;
         scope.ngModel = scope.ngModel || [];
 
-        scope.$watch('ngModel', function() {
-          console.debug('ngModel: ', scope.ngModel);
-        });
-
         scope.getNumber = function(num) {
           return new Array(num);
         };
