@@ -16,16 +16,12 @@
         scope.height = typeof scope.height === "number" ? scope.height : 4;
         scope.ngModel = scope.ngModel || [];
 
-        scope.$watch('ngModel', function() {
-          console.debug('ngModel: ', scope.ngModel);
-        });
-
         scope.getNumber = function(num) {
           return new Array(num);
         };
-        scope.cellClicked = function(active, data) {
+        scope.cellClicked = function(active, position) {
           if (scope.onTrigger) {
-            scope.onTrigger(active, data, scope.ngModel);
+            scope.onTrigger(active, position, scope.ngModel);
           }
         };
       },

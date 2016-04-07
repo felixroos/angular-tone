@@ -22,8 +22,13 @@ gulp.task('build:bowerfiles', function() {
 });
 
 gulp.task('build:js', function() {
-  return gulp.src(['src/**/*.js'])
-    .pipe(concat('app.js'))
+  return gulp.src(['src/js/**/*.js'])
+    .pipe(concat('angular-tone.js'))
+    .pipe(gulp.dest('dist/'));
+});
+
+gulp.task('build:demo', function() {
+  return gulp.src(['src/angular-tone-demo.js'])
     .pipe(gulp.dest('dist/'));
 });
 
@@ -37,7 +42,7 @@ gulp.task('inject', function() {
     'dist/**/*.css'], {read: false});
 
   var injectScripts = gulp.src([
-      'dist/vendor.js', 'dist/app.js'], {read: false})
+      'dist/vendor.js', 'dist/angular-tone.js', 'dist/angular-tone-demo.js'], {read: false})
     .pipe(debug());
 
   var injectOptions = {
@@ -58,7 +63,7 @@ gulp.task('inject', function() {
 });
 
 gulp.task('build', function(done) {
-  return runSequence(['copy:assets', 'build:js', 'build:bowerfiles', 'sass'], ['inject'], done);
+  return runSequence(['copy:assets', 'build:js', 'build:demo', 'build:bowerfiles', 'sass'], ['inject'], done);
 });
 
 gulp.task('rebuild', ['build'], function() {

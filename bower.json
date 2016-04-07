@@ -1,7 +1,11 @@
 {
   "name": "angular-tone",
   "description": "Make Music with AngularJS! This Module wraps ToneJS together with many music UI elements such as keyboards and pads.",
-  "main": "dist/",
+  "main": [
+    "dist/angular-tone.js",
+    "dist/css/style.css"
+  ],
+  "version": "0.0.1",
   "authors": [
     "Felix Roos <roos@entrecode.de>"
   ],
