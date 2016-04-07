@@ -19,9 +19,9 @@
         scope.getNumber = function(num) {
           return new Array(num);
         };
-        scope.cellClicked = function(active, data) {
+        scope.cellClicked = function(active, position) {
           if (scope.onTrigger) {
-            scope.onTrigger(active, data, scope.ngModel);
+            scope.onTrigger(active, position, scope.ngModel);
           }
         };
       },
