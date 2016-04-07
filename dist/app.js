@@ -2,32 +2,31 @@
  * Created by felix on 07.04.16.
  */
 (function() {
+  'use strict';
   angular.module('ec.angular.tone', []).controller('SynthCtrl', function($scope, $log) {
     $log.info('welcome to the tone playground!');
-
     $scope.fatSynth = new Tone.MonoSynth({
-      "portamento" : 0.01,
-      "oscillator" : {
-        "type" : "sine"
+      "portamento":     0.01,
+      "oscillator":     {
+        "type": "sine"
       },
-      "envelope" : {
-        "attack" : 0.005,
-        "decay" : 0.2,
-        "sustain" : 0.4,
-        "release" : 1.4
+      "envelope":       {
+        "attack":  0.005,
+        "decay":   0.2,
+        "sustain": 0.4,
+        "release": 1.4
       },
-      "filterEnvelope" : {
-        "attack" : 0.005,
-        "decay" : 0.1,
-        "sustain" : 0.05,
-        "release" : 0.8,
-        "baseFrequency" : 300,
-        "octaves" : 4
+      "filterEnvelope": {
+        "attack":        0.005,
+        "decay":         0.1,
+        "sustain":       0.05,
+        "release":       0.8,
+        "baseFrequency": 300,
+        "octaves":       4
       }
     }).toMaster();
 
     $scope.polySynth = new Tone.PolySynth(3, Tone.MonoSynth).toMaster();
-
 
     $scope.attackSynth = function(note, frequency) {
       $scope.fatSynth.triggerAttack(frequency);
@@ -42,17 +41,6 @@
         $scope.fatSynth.triggerAttackRelease("C#4", "8n");
       }
     };
-
-    $scope.data = 20;
-    $scope.options = {
-      width: 75,
-      fgColor: "#ffec03",
-      skin: "tron",
-      thickness: .2,
-      displayPrevious: true
-    };
-
-    //create one of Tone's built-in synthesizers and connect it to the master output
   });
 }());
 
@@ -161,10 +149,8 @@
           return typeof value === 'number';
         };
 
-        if (typeof scope.ngModel === 'object') {
-
-        } else {
-          console.error('ngModel must be object!');
+        if (typeof scope.ngModel !== 'object') {
+          console.error('ngModel must be an object!');
         }
       },
       template: '<div class="tone-mixer"><poti ng-if="isNumber(param)" label="{{key}}" ng-repeat="(key, param) in ngModel" ng-model="param"></poti></div>'
@@ -247,12 +233,7 @@
           width:           scope.size + 'px',
           height:          scope.size + 'px',
           borderRadius:    scope.size / 2 + 'px',
-          backgroundColor: scope.color,
-          display:         'inline-block',
-          margin:          '4px'
-          //,
-          //boxShadow:       'inset 0 ' + scope.size / 5 + 'px 0 rgba(255,255,255, 0.6),' +
-          //                 'inset 0 -' + scope.size / 10 + 'px 0 rgba(255,255,255, 0.6)'
+          backgroundColor: scope.color
         };
 
         scope.rotatorStyle = {

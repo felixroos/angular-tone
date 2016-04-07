@@ -13,10 +13,8 @@
           return typeof value === 'number';
         };
 
-        if (typeof scope.ngModel === 'object') {
-
-        } else {
-          console.error('ngModel must be object!');
+        if (typeof scope.ngModel !== 'object') {
+          console.error('ngModel must be an object!');
         }
       },
       template: '<div class="tone-mixer"><poti ng-if="isNumber(param)" label="{{key}}" ng-repeat="(key, param) in ngModel" ng-model="param"></poti></div>'

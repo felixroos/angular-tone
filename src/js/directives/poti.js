@@ -30,12 +30,7 @@
           width:           scope.size + 'px',
           height:          scope.size + 'px',
           borderRadius:    scope.size / 2 + 'px',
-          backgroundColor: scope.color,
-          display:         'inline-block',
-          margin:          '4px'
-          //,
-          //boxShadow:       'inset 0 ' + scope.size / 5 + 'px 0 rgba(255,255,255, 0.6),' +
-          //                 'inset 0 -' + scope.size / 10 + 'px 0 rgba(255,255,255, 0.6)'
+          backgroundColor: scope.color
         };
 
         scope.rotatorStyle = {

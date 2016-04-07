@@ -1,7 +1,7 @@
 {
-  "name": "tone-sandbox",
-  "description": "Playground for ToneJS",
-  "main": "index.js",
+  "name": "angular-tone",
+  "description": "Make Music with AngularJS! This Module wraps ToneJS together with many music UI elements such as keyboards and pads.",
+  "main": "dist/",
   "authors": [
     "Felix Roos <roos@entrecode.de>"
   ],
