@@ -81,10 +81,11 @@
         };
 
         scope.$watch('ngModel.pads', function() {
+          $log.debug('matrix pads loaded');
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
             if (scope.initPads === 'random') {
               var r = 0;
-              for (r; r < scope.width * scope.height; r++) {
+              for (r; r < scope.width * scope.height / 2; r++) {
                 scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
                   scope.height));
               }
@@ -149,6 +150,19 @@
                 callback(scope.ngModel.getPad(x, i), scope.ngModel.getMapping(x, i));
               } else if (options.direction === 'horizontal') {
                 callback(scope.ngModel.getPad(i, y), scope.ngModel.getMapping(i, y));
+              }
+            }
+          },
+          clear:            function() {
+            if (scope.ngModel.pads) {
+              var n;
+              for (n = 0; n < scope.height; n++) {
+                scope.ngModel.forEachPad(function(pad) {
+                  pad.switchOff();
+                }, {
+                  direction: 'horizontal',
+                  index:     n
+                });
               }
             }
           },

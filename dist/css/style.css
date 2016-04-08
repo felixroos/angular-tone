@@ -5,8 +5,10 @@ body {
   display: inline-block;
   margin: 4px;
   border: 1px solid #000; }
-  .tone-pad.trigger {
+  .tone-pad.hold {
     background-color: #f3e939; }
+  .tone-pad.trigger {
+    background-color: #fc8c84; }
   .tone-pad.on {
     background-color: #4A90E2; }
   .tone-pad.active {

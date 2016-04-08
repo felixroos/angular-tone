@@ -21,7 +21,7 @@
       },
       transclude: true,
       link:       function(scope, element) {
-        scope.triggerOnActivate = true;
+        scope.triggerOnActivate = (typeof scope.triggerOnActivate === 'undefined' ? false : scope.triggerOnActivate);
         scope.switchOnActivate = false;
         
         var interpretAction = function(action, perform) {
@@ -51,20 +51,30 @@
                 scope.ngModel.triggerPad(scope.action);
               }
             },
+            switchOn:      function(trigger) {
+              scope.ngModel.on = true;
+              if (trigger) {
+                scope.ngModel.triggerPad(scope.action);
+              }
+            },
+            switchOff:     function() {
+              scope.ngModel.on = false;
+            },
             triggerPad:    function(action) {
+              scope.ngModel.active = true;
+              $timeout(function() {
+                scope.ngModel.active = false;
+              }, 200);
               if (scope.ngModel.on && action) {
                 interpretAction(action, 'trigger');
-                scope.ngModel.active = true;
-                $timeout(function() {
-                  scope.ngModel.active = false;
-                }, 200);
               }
               if (scope.onTrigger) {
                 scope.onTrigger(scope.ngModel.on, scope.data);
               }
             },
             activatePad:   function(action) {
-              if (action && ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'trigger')) {
+              if (action &&
+                ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'trigger' || scope.mode === 'hold')) {
                 interpretAction(action, 'activate');
               }
               scope.ngModel.active = true;
@@ -73,7 +83,7 @@
               }
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
-              } else if (scope.mode === 'trigger' && scope.triggerOnActivate) {
+              } else if (scope.mode === 'trigger') {
                 scope.ngModel.triggerPad(action); //experimental
               }
             },
@@ -107,7 +117,7 @@
           }
         };
       },
-      template:   '<a href class="tone-pad" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\'}"><ng-transclude></ng-transclude></a>'
+      template:   '<a href class="tone-pad" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\',\'hold\':mode===\'hold\'}"><ng-transclude></ng-transclude></a>'
     };
   });
 }());

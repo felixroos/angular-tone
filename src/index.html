@@ -35,18 +35,18 @@
   <p>A pad is a button with two modes: switch (white/blue) and trigger (yellow). switch toggles it between on/off,
     trigger just activates the pad on mousedown. This pad is in mode trigger and plays a C4 with the instrument when
     clicked.</p>
-  <pad instrument="polySynth" action="{note:'C3'}" size="50" mode="trigger"></pad>
+  <pad instrument="polySynth" action="{note:'C3'}" size="50" mode="hold"></pad>
   <h2>Matrix</h2>
 
   <p>A matrix is a collection of pads that acts as a unit. The following matrix consists of pads with mode=switch. Click
     to toggle on/off!</p>
-  <matrix style="float:left" width="1" height="5" ng-model="rowTrigger" pad-mode="trigger" mapping="horizontal"
+  <matrix style="float:left" width="1" height="5" ng-model="rowTrigger" pad-mode="hold" mapping="horizontal"
           matrix="toneMatrix"></matrix>
   <matrix width="8" height="5" ng-model="toneMatrix" instrument="polySynth" mapping="time scale"
-          init-pads="random" scale="minorpentatonic" octave="matrixOctave"></matrix>
-  <pad style="float:left" on-trigger="yesYo" mode="trigger"></pad>
+          init-pads="random" scale="majorpentatonic" octave="matrixOctave"></matrix>
+  <pad style="float:left" on-trigger="toneMatrix.clear" mode="trigger"></pad>
 
-  <matrix width="8" height="1" ng-model="colTrigger" pad-mode="trigger" mapping="vertical" matrix="toneMatrix"></matrix>
+  <matrix width="8" height="1" ng-model="colTrigger" pad-mode="hold" mapping="vertical" matrix="toneMatrix"></matrix>
   <p>The yellow matrices consist of pads with mode=trigger. Click to trigger whole columns/rows of the above matrix to
     play all pads
     that are on!</p><!--
@@ -55,7 +55,7 @@
   <poti ng-model="matrixOctave" label="octave" size="100" min="0" max="6"></poti>-->
   <h2>Loop</h2>
   A Loop has two pads: Play/Stop and Mute/Unmute:
-  <loop ng-model="matrixLoop" on-tick="toneMatrix.triggerColumn"></loop>
+  <loop ng-model="matrixLoop" autostart="true" on-tick="toneMatrix.triggerColumn"></loop>
 
 </div>
 <!-- inject:js -->

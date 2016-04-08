@@ -6,8 +6,11 @@ body {
   display: inline-block;
   margin: 4px;
   border: 1px solid #000;
-  &.trigger {
+  &.hold {
     background-color: #f3e939;
+  }
+  &.trigger {
+    background-color: #fc8c84;
   }
   &.on {
     background-color: #4A90E2;

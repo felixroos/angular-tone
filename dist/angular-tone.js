@@ -96,7 +96,11 @@
         onTick:    '=?'
       },
       link:     function(scope) {
-        scope.isPlaying = (scope.autostart === 'undefined' ? false : scope.autostart);
+        scope.$watch('playButton', function() {
+          if (scope.playButton) {
+            scope.playButton.switchPad(true);
+          }
+        });
 
         scope.ngModel = new Tone.Sequence(function(time, col) {
           //$scope.toneMatrix.triggerColumn(col);
@@ -112,6 +116,10 @@
         scope.togglePlay = function(active) {
           scope.isPlaying = active;
         };
+        scope.replay = function() {
+          scope.ngModel.stop();
+          scope.ngModel.start();
+        };
         scope.$watch('isPlaying', function() {
           if (scope.isPlaying) {
             scope.ngModel.start();
@@ -119,6 +127,7 @@
             scope.ngModel.stop();
           }
         });
+        scope.$w
         scope.toggleMute = function(active) {
           scope.mute = active;
         };
@@ -126,7 +135,7 @@
           scope.ngModel.mute = scope.mute;
         });
       },
-      template: '<div class="tone-sequencer noselect"><pad on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
+      template: '<div class="tone-sequencer noselect"><pad ng-model="playButton" on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="replay" mode="trigger"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
     };
   });
 }());
@@ -213,10 +222,11 @@
         };
 
         scope.$watch('ngModel.pads', function() {
+          $log.debug('matrix pads loaded');
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
             if (scope.initPads === 'random') {
               var r = 0;
-              for (r; r < scope.width * scope.height; r++) {
+              for (r; r < scope.width * scope.height / 2; r++) {
                 scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
                   scope.height));
               }
@@ -281,6 +291,19 @@
                 callback(scope.ngModel.getPad(x, i), scope.ngModel.getMapping(x, i));
               } else if (options.direction === 'horizontal') {
                 callback(scope.ngModel.getPad(i, y), scope.ngModel.getMapping(i, y));
+              }
+            }
+          },
+          clear:            function() {
+            if (scope.ngModel.pads) {
+              var n;
+              for (n = 0; n < scope.height; n++) {
+                scope.ngModel.forEachPad(function(pad) {
+                  pad.switchOff();
+                }, {
+                  direction: 'horizontal',
+                  index:     n
+                });
               }
             }
           },
@@ -393,7 +416,7 @@
       },
       transclude: true,
       link:       function(scope, element) {
-        scope.triggerOnActivate = true;
+        scope.triggerOnActivate = (typeof scope.triggerOnActivate === 'undefined' ? false : scope.triggerOnActivate);
         scope.switchOnActivate = false;
         
         var interpretAction = function(action, perform) {
@@ -423,20 +446,30 @@
                 scope.ngModel.triggerPad(scope.action);
               }
             },
+            switchOn:      function(trigger) {
+              scope.ngModel.on = true;
+              if (trigger) {
+                scope.ngModel.triggerPad(scope.action);
+              }
+            },
+            switchOff:     function() {
+              scope.ngModel.on = false;
+            },
             triggerPad:    function(action) {
+              scope.ngModel.active = true;
+              $timeout(function() {
+                scope.ngModel.active = false;
+              }, 200);
               if (scope.ngModel.on && action) {
                 interpretAction(action, 'trigger');
-                scope.ngModel.active = true;
-                $timeout(function() {
-                  scope.ngModel.active = false;
-                }, 200);
               }
               if (scope.onTrigger) {
                 scope.onTrigger(scope.ngModel.on, scope.data);
               }
             },
             activatePad:   function(action) {
-              if (action && ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'trigger')) {
+              if (action &&
+                ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'trigger' || scope.mode === 'hold')) {
                 interpretAction(action, 'activate');
               }
               scope.ngModel.active = true;
@@ -445,7 +478,7 @@
               }
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
-              } else if (scope.mode === 'trigger' && scope.triggerOnActivate) {
+              } else if (scope.mode === 'trigger') {
                 scope.ngModel.triggerPad(action); //experimental
               }
             },
@@ -479,7 +512,7 @@
           }
         };
       },
-      template:   '<a href class="tone-pad" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\'}"><ng-transclude></ng-transclude></a>'
+      template:   '<a href class="tone-pad" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\',\'hold\':mode===\'hold\'}"><ng-transclude></ng-transclude></a>'
     };
   });
 }());

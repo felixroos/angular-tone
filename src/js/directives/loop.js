@@ -12,7 +12,11 @@
         onTick:    '=?'
       },
       link:     function(scope) {
-        scope.isPlaying = (scope.autostart === 'undefined' ? false : scope.autostart);
+        scope.$watch('playButton', function() {
+          if (scope.playButton) {
+            scope.playButton.switchPad(true);
+          }
+        });
 
         scope.ngModel = new Tone.Sequence(function(time, col) {
           //$scope.toneMatrix.triggerColumn(col);
@@ -28,6 +32,10 @@
         scope.togglePlay = function(active) {
           scope.isPlaying = active;
         };
+        scope.replay = function() {
+          scope.ngModel.stop();
+          scope.ngModel.start();
+        };
         scope.$watch('isPlaying', function() {
           if (scope.isPlaying) {
             scope.ngModel.start();
@@ -35,6 +43,7 @@
             scope.ngModel.stop();
           }
         });
+        scope.$w
         scope.toggleMute = function(active) {
           scope.mute = active;
         };
@@ -42,7 +51,7 @@
           scope.ngModel.mute = scope.mute;
         });
       },
-      template: '<div class="tone-sequencer noselect"><pad on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
+      template: '<div class="tone-sequencer noselect"><pad ng-model="playButton" on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="replay" mode="trigger"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
     };
   });
 }());
