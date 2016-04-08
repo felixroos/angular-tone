@@ -14,19 +14,47 @@
   <p>This is the Demo of angular-tone, an AngularJS wrapper for ToneJS to easily create Music Applications. It features
     the following UI Components:</p>
 
+  <h2>Instrument</h2>
+
+  <p>The intrument directive allows adding instruments directly over the template! There is nothing to see, but to hear.
+    Inspect the code to learn how to add an instrument via the template.</p>
+  <instrument ng-model="coolSynth" id="coolSynth" type="mono"></instrument>
+  <instrument ng-model="polySynth" id="polySynth" type="poly"></instrument>
   <h2>Keyboard</h2>
 
   <p>Angular wrapper for <a href="http://stuartmemo.com/qwerty-hancock/">Qwerty Hancock</a>, with extra options to
     connect with ToneJS:</p>
-  <keyboard id="fat" width="500" synth="fatSynth"></keyboard>
+  <keyboard id="cool" width="500" synth="polySynth"></keyboard>
   <h2>Poti</h2>
-  <poti ng-model="fatSynth.envelope.attack" label="attack" size="100" min="0" max="100" places="2"></poti>
+  <poti ng-model="coolSynth.envelope.attack" label="attack" size="200" min="0" max="5" places="2"></poti>
   <h2>Mixer</h2>
-  <mixer ng-model="fatSynth.envelope"></mixer>
+
+  <p>The following Mixer controls the Synthesizers envelope and automatically generates potis for every parameter:</p>
+  <mixer ng-model="coolSynth.envelope"></mixer>
   <h2>Pad</h2>
-  <pad on-trigger="playSynth"></pad>
+
+  <p>A pad is a button with two modes: switch (white/blue) and trigger (yellow). switch toggles it between on/off,
+    trigger just activates the pad on mousedown. This pad is in mode trigger and plays a C4 with the instrument when
+    clicked.</p>
+  <pad instrument="polySynth" action="{note:'C4'}" size="50" mode="trigger"></pad>
   <h2>Matrix</h2>
-  <matrix width="4" height="4" on-trigger="playSynth"></matrix>
+
+  <p>A matrix is a collection of pads that acts as a unit. The following matrix consists of pads with mode=switch. Click
+    to toggle on/off!</p>
+  <matrix style="float:left" width="1" height="5" ng-model="rowTrigger" pad-mode="trigger" mapping="horizontal"
+          matrix="toneMatrix"></matrix>
+  <matrix width="8" height="5" ng-model="toneMatrix" instrument="polySynth" mapping="time scale"
+          init-pads="0,4 1,3 2,2 3,1 4,0 5,1 6,2 7,3" scale="mixolydian"></matrix>
+  <pad style="float:left" on-trigger="playCool" mode="trigger"></pad>
+
+  <matrix width="8" height="1" ng-model="colTrigger" pad-mode="trigger" mapping="vertical" matrix="toneMatrix"></matrix>
+  <hr>
+  <p>The yellow matrices consist of pads with mode=trigger. Click to trigger whole columns/rows of the above matrix to
+    play all pads
+    that are on!</p>
+
+  <p>This poti controls the matrix octave:</p>
+  <poti ng-model="matrixOctave" label="octave" size="100" min="0" max="6"></poti>
 </div>
 <!-- inject:js -->
 <script src="vendor.js"></script>

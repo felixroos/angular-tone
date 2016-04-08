@@ -1,5 +1,16 @@
 body {
-  background-color: #fc8c84; }
+  background-color: #fff; }
+
+.tone-pad {
+  display: inline-block;
+  margin: 4px;
+  border: 1px solid #000; }
+  .tone-pad.trigger {
+    background-color: #f3e939; }
+  .tone-pad.on {
+    background-color: #4A90E2; }
+  .tone-pad.active {
+    background-color: #00AA00; }
 
 .tone-poti {
   display: inline-block;
@@ -31,11 +42,12 @@ body {
         height: 30%;
         display: block;
         background-color: #000; }
-  .tone-poti .poti-value {
+  .tone-poti .poti-value, .tone-poti .poti-label {
     position: absolute;
+    pointer-events: none; }
+  .tone-poti .poti-value {
     top: 0; }
   .tone-poti .poti-label {
-    position: absolute;
     bottom: 0; }
 
 .noselect {

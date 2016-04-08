@@ -13,7 +13,9 @@ gulp.task('build:bowerfiles', function() {
   return gulp.src('./bower.json')
     .pipe(mainBowerFiles({
       overrides: {
-        "nexus-ui": {}
+        "teoria": {
+          main: "./teoria.js"
+        }
       }
     }))
     .pipe(filter(['**/*.js']))
@@ -52,7 +54,11 @@ gulp.task('inject', function() {
 
   var wiredepOptions = {
     directory: 'bower_components',
-    overrides: {}
+    overrides: {
+      "teoria": {
+        main: "./teoria.js"
+      }
+    }
   };
 
   return gulp.src('src/index.html')
@@ -90,7 +96,7 @@ gulp.task('sass', function() {
 
 gulp.task('watch', function() {
   gulp.watch('src/**/*.scss', ['sass']);
-  gulp.watch('src/**/*.js', ['build:js']);
+  gulp.watch('src/**/*.js', ['build:js', 'build:demo']);
   gulp.watch(['src/*.html'], ['rebuild']);
 });
 

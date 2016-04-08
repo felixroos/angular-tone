@@ -36,7 +36,6 @@
     };
 
     $scope.playSynth = function(active, pad, matrix) {
-      console.debug(pad, matrix);
       if (active) {
         $scope.fatSynth.triggerAttackRelease("C#4", "8n");
       }
@@ -126,7 +125,6 @@
         scope.ngModel = scope.ngModel || [];
 
         scope.$watch('ngModel', function() {
-          console.debug('ngModel: ', scope.ngModel);
         });
 
         scope.getNumber = function(num) {

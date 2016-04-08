@@ -1,5 +1,20 @@
 body {
-  background-color: #fc8c84;
+  background-color: #fff;
+}
+
+.tone-pad {
+  display: inline-block;
+  margin: 4px;
+  border: 1px solid #000;
+  &.trigger {
+    background-color: #f3e939;
+  }
+  &.on {
+    background-color: #4A90E2;
+  }
+  &.active {
+    background-color: #00AA00;
+  }
 }
 
 .tone-poti {
@@ -35,12 +50,14 @@ body {
       }
     }
   }
-  .poti-value {
+  .poti-value, .poti-label {
     position: absolute;
+    pointer-events: none;
+  }
+  .poti-value {
     top: 0;
   }
   .poti-label {
-    position: absolute;
     bottom: 0;
   }
 }

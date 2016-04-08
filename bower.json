@@ -23,7 +23,8 @@
     "jquery": "~2.2.0",
     "angular": "^1.5.3",
     "tone": "*",
-    "qwerty-hancock": "^0.5.1"
+    "qwerty-hancock": "^0.5.1",
+    "teoria": "^2.2.0"
   },
   "resolutions": {
     "jquery": "~2.2.0"

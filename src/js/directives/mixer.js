@@ -3,7 +3,7 @@
  */
 (function() {
   'use strict';
-  angular.module('ec.angular.tone').directive('mixer', function() {
+  angular.module('ec.angular.tone').directive('mixer', function($log) {
     return {
       scope:    {
         ngModel: '=?'
@@ -12,12 +12,15 @@
         scope.isNumber = function(value) {
           return typeof value === 'number';
         };
-
-        if (typeof scope.ngModel !== 'object') {
-          console.error('ngModel must be an object!');
-        }
+        scope.loading = true;
+        scope.$watch('ngModel', function() {
+          if (typeof scope.ngModel === 'object') {
+            scope.loading = false;
+            $log.debug('link mixer for object ', scope.ngModel);
+          }
+        });
       },
-      template: '<div class="tone-mixer"><poti ng-if="isNumber(param)" label="{{key}}" ng-repeat="(key, param) in ngModel" ng-model="param"></poti></div>'
+      template: '<div class="tone-mixer" ng-if="!loading"><poti ng-if="isNumber(param)" label="{{key}}" ng-repeat="(key, param) in ngModel" ng-model="param"></poti></div>'
     };
   });
 }());

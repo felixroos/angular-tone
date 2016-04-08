@@ -3,42 +3,71 @@
  */
 (function() {
   'use strict';
-  angular.module('ec.angular.tone.demo', ['ec.angular.tone']).controller('SynthCtrl', function($scope, $log) {
+  angular.module('ec.angular.tone.demo', ['ec.angular.tone']).controller('SynthCtrl', function($scope, $log,
+    Instruments) {
     $log.info('welcome to the angular-tone demo!');
-    $scope.fatSynth = new Tone.MonoSynth({
-      "portamento":     0.01,
-      "oscillator":     {
-        "type": "sine"
-      },
-      "envelope":       {
-        "attack":  0.005,
-        "decay":   0.2,
-        "sustain": 0.4,
-        "release": 1.4
-      },
-      "filterEnvelope": {
-        "attack":        0.005,
-        "decay":         0.1,
-        "sustain":       0.05,
-        "release":       0.8,
-        "baseFrequency": 300,
-        "octaves":       4
-      }
-    }).toMaster();
 
-    $scope.polySynth = new Tone.PolySynth(3, Tone.MonoSynth).toMaster();
+    $scope.matrixOctave = 4;
+    var a4, scale;
+    $scope.$watch('matrixOctave', function() {
+      a4 = teoria.note('c' + $scope.matrixOctave);
+      scale = a4.scale('minorpentatonic').notes();
+    });
 
-    $scope.attackSynth = function(note, frequency) {
-      $scope.fatSynth.triggerAttack(frequency);
-    };
-    $scope.releaseSynth = function() {
-      $scope.fatSynth.triggerRelease();
-    };
-
-    $scope.playSynth = function(active, pad, matrix) {
+    $scope.padTriggered = function(active, pad, matrix) {
+      var index = Math.abs(scale.length - 1 - pad.y) % scale.length;
+      var note = scale[index].scientific();
       if (active) {
-        $scope.fatSynth.triggerAttackRelease("C#4", "8n");
+        $log.debug('play note', note);
+        $scope.polySynth.triggerAttackRelease(note, "8n");
       }
     };
+
+    $scope.activateCol = function(active, pad) {
+      $scope.toneMatrix.activateColumn(pad.x);
+    };
+    $scope.deactivateCol = function(active, pad) {
+      $scope.toneMatrix.deactivateColumn(pad.x);
+    };
+
+    $scope.activateRow = function(active, pad) {
+      $scope.toneMatrix.activateRow(pad.y);
+    };
+    $scope.deactivateRow = function(active, pad) {
+      $scope.toneMatrix.deactivateRow(pad.y);
+    };
+
+    $scope.playCool = function() {
+      $scope.polySynth.triggerAttackRelease('c4', '8n');
+    };
+
+    var col = 0;
+
+    var note = new Tone.Event(function(time, pitch) {
+      $scope.colTrigger.triggerPad(col++ % 8, 0);
+      //$scope.polySynth.triggerAttackRelease(pitch, "16n", time);
+    }, "C2");
+
+    //set the note to loop every half measure
+    note.set({
+      "loop":    true,
+      "loopEnd": "1m"
+    });
+
+    //start the note at the beginning of the Transport timeline
+    note.start(0);
+
+    //stop the note on the /*/**/*/4th measure
+    note.stop("4m");
+
+    Tone.Transport.schedule(function(time) {
+      //time = sample accurate time of the event
+    }, "1m");
+    Tone.Transport.bpm.rampTo("300");
+    Tone.Transport.loop = true;
+    Tone.Transport.loopStart = "1m";
+    Tone.Transport.loopEnd = "4m";
+
+    //Tone.Transport.start();
   });
 }());

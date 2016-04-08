@@ -44,7 +44,7 @@
             scope.keyUp(note, frequency);
           }
           if (scope.synth) {
-            scope.synth.triggerRelease();
+            scope.synth.triggerRelease(frequency);
           }
         };
       },
