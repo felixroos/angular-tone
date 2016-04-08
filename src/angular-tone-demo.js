@@ -23,51 +23,27 @@
       }
     };
 
-    $scope.activateCol = function(active, pad) {
-      $scope.toneMatrix.activateColumn(pad.x);
-    };
-    $scope.deactivateCol = function(active, pad) {
-      $scope.toneMatrix.deactivateColumn(pad.x);
-    };
-
-    $scope.activateRow = function(active, pad) {
-      $scope.toneMatrix.activateRow(pad.y);
-    };
-    $scope.deactivateRow = function(active, pad) {
-      $scope.toneMatrix.deactivateRow(pad.y);
-    };
-
     $scope.playCool = function() {
       $scope.polySynth.triggerAttackRelease('c4', '8n');
     };
 
-    var col = 0;
+    $scope.superDuper = function(time,col) {
+      $scope.toneMatrix.triggerColumn(col % 8);
+    };
 
-    var note = new Tone.Event(function(time, pitch) {
-      $scope.colTrigger.triggerPad(col++ % 8, 0);
-      //$scope.polySynth.triggerAttackRelease(pitch, "16n", time);
-    }, "C2");
+    /*var loop = new Tone.Sequence(function(time, col) {
+      //$scope.toneMatrix.triggerColumn(col);
+      //$scope.colTrigger.triggerPad(col, 0);
+      $scope.toneMatrix.triggerColumn(col % 8);
 
-    //set the note to loop every half measure
-    note.set({
-      "loop":    true,
-      "loopEnd": "1m"
-    });
+    }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "8n");
+    Tone.Transport.start();*/
+    //loop.start();
 
-    //start the note at the beginning of the Transport timeline
-    note.start(0);
+    $scope.yesYo = function() {
+      console.debug('mute..');
+      loop.mute = !loop.mute;
+    };
 
-    //stop the note on the /*/**/*/4th measure
-    note.stop("4m");
-
-    Tone.Transport.schedule(function(time) {
-      //time = sample accurate time of the event
-    }, "1m");
-    Tone.Transport.bpm.rampTo("300");
-    Tone.Transport.loop = true;
-    Tone.Transport.loopStart = "1m";
-    Tone.Transport.loopEnd = "4m";
-
-    //Tone.Transport.start();
   });
 }());

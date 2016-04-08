@@ -87,6 +87,54 @@
  */
 (function() {
   'use strict';
+  angular.module('ec.angular.tone').directive('loop', function() {
+    return {
+      scope:    {
+        ngModel:   '=?',
+        autostart: '=?',
+        mute:      '=?',
+        onTick:    '=?'
+      },
+      link:     function(scope) {
+        scope.isPlaying = (scope.autostart === 'undefined' ? false : scope.autostart);
+
+        scope.ngModel = new Tone.Sequence(function(time, col) {
+          //$scope.toneMatrix.triggerColumn(col);
+          //$scope.colTrigger.triggerPad(col, 0);
+          if (typeof scope.onTick === 'function') {
+            scope.onTick(col, time);
+          }
+        }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "8n");
+
+        Tone.Transport.start();
+        //loop.start();
+
+        scope.togglePlay = function(active) {
+          scope.isPlaying = active;
+        };
+        scope.$watch('isPlaying', function() {
+          if (scope.isPlaying) {
+            scope.ngModel.start();
+          } else {
+            scope.ngModel.stop();
+          }
+        });
+        scope.toggleMute = function(active) {
+          scope.mute = active;
+        };
+        scope.$watch('mute', function() {
+          scope.ngModel.mute = scope.mute;
+        });
+      },
+      template: '<div class="tone-sequencer noselect"><pad on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
+    };
+  });
+}());
+/**
+ * Created by felix on 07.04.16.
+ */
+(function() {
+  'use strict';
   angular.module('ec.angular.tone').directive('matrix', function($log) {
     return {
       restrict: 'E',
@@ -103,7 +151,7 @@
         mapping:      '@?',
         root:         '@',
         scale:        '@?',
-        octave:       '=?',
+        octave:       '=?', //TODO
         instrument:   '=?',
         matrix:       '=?'
       },
@@ -112,6 +160,7 @@
         scope.height = typeof scope.height === "number" ? scope.height : 4;
         scope.padSize = typeof scope.padSize === 'number' ? scope.padSize : 50;
         scope.padMode = scope.padMode || 'switch';
+
         var mapping, control, root  = scope.root || "c", scale = scope.scale ||
           "minorpentatonic", octave = scope.octave || "4";
 
@@ -165,11 +214,19 @@
 
         scope.$watch('ngModel.pads', function() {
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
-            var padsToInit = scope.initPads.split(' ');
-            padsToInit.forEach(function(pad) {
-              var position = pad.split(',');
-              scope.ngModel.switchPad(position[0], position[1]);
-            });
+            if (scope.initPads === 'random') {
+              var r = 0;
+              for (r; r < scope.width * scope.height; r++) {
+                scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
+                  scope.height));
+              }
+            } else {
+              var padsToInit = scope.initPads.split(' ');
+              padsToInit.forEach(function(pad) {
+                var position = pad.split(',');
+                scope.ngModel.switchPad(position[0], position[1]);
+              });
+            }
           }
         });
 
@@ -201,11 +258,13 @@
               case 'vertical':
                 limit = scope.height;
                 measure = scope.width;
+                options.index = options.index % measure;
                 x = options.index;
                 break;
               case 'horizontal':
                 limit = scope.width;
                 measure = scope.height;
+                options.index = options.index % measure;
                 y = options.index;
                 break;
               default:
@@ -232,6 +291,7 @@
               direction: 'vertical',
               index:     index
             });
+            scope.$digest();
           },
           deactivateColumn: function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -240,6 +300,7 @@
               direction: 'vertical',
               index:     index
             });
+            scope.$digest();
           },
           activateRow:      function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -248,6 +309,7 @@
               direction: 'horizontal',
               index:     index
             });
+            scope.$digest();
           },
           deactivateRow:    function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -256,6 +318,7 @@
               direction: 'horizontal',
               index:     index
             });
+            scope.$digest();
           },
           triggerColumn:    function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -264,6 +327,7 @@
               direction: 'vertical',
               index:     index
             });
+            scope.$digest();
           },
           triggerRow:       function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -272,6 +336,7 @@
               direction: 'horizontal',
               index:     index
             });
+            scope.$digest();
           }
         };
       },
@@ -328,8 +393,8 @@
       },
       transclude: true,
       link:       function(scope, element) {
-        scope.triggerOnActivate = (scope.triggerOnActivate === 'undefined' ? true : scope.triggerOnActivate);
-        scope.switchOnActivate = (scope.switchOnActivate === 'undefined' ? false : scope.switchOnActivate);
+        scope.triggerOnActivate = true;
+        scope.switchOnActivate = false;
         
         var interpretAction = function(action, perform) {
           if (action.note && scope.instrument) {
@@ -338,10 +403,9 @@
               scope.instrument.triggerAttack(action.note);
             } else if (perform === 'deactivate') {
               scope.instrument.triggerRelease(action.note);
+            } else if (perform === 'trigger') {
+              scope.instrument.triggerAttackRelease(action.note, "8n");
             }
-            /*else if (perform === 'trigger') {
-             scope.instrument.triggerAttackRelease(action.note, "8n");
-             }*/
           }
           if (action.sample) {
             if (perform === 'trigger') {
@@ -360,8 +424,12 @@
               }
             },
             triggerPad:    function(action) {
-              if (action) {
+              if (scope.ngModel.on && action) {
                 interpretAction(action, 'trigger');
+                scope.ngModel.active = true;
+                $timeout(function() {
+                  scope.ngModel.active = false;
+                }, 200);
               }
               if (scope.onTrigger) {
                 scope.onTrigger(scope.ngModel.on, scope.data);
@@ -377,8 +445,8 @@
               }
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
-              } else if (scope.mode === 'trigger') { // && scope.triggerOnActivate
-                scope.ngModel.triggerPad(action);
+              } else if (scope.mode === 'trigger' && scope.triggerOnActivate) {
+                scope.ngModel.triggerPad(action); //experimental
               }
             },
             deactivatePad: function(action) {

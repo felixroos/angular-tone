@@ -19,7 +19,7 @@
         mapping:      '@?',
         root:         '@',
         scale:        '@?',
-        octave:       '=?',
+        octave:       '=?', //TODO
         instrument:   '=?',
         matrix:       '=?'
       },
@@ -28,6 +28,7 @@
         scope.height = typeof scope.height === "number" ? scope.height : 4;
         scope.padSize = typeof scope.padSize === 'number' ? scope.padSize : 50;
         scope.padMode = scope.padMode || 'switch';
+
         var mapping, control, root  = scope.root || "c", scale = scope.scale ||
           "minorpentatonic", octave = scope.octave || "4";
 
@@ -81,11 +82,19 @@
 
         scope.$watch('ngModel.pads', function() {
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
-            var padsToInit = scope.initPads.split(' ');
-            padsToInit.forEach(function(pad) {
-              var position = pad.split(',');
-              scope.ngModel.switchPad(position[0], position[1]);
-            });
+            if (scope.initPads === 'random') {
+              var r = 0;
+              for (r; r < scope.width * scope.height; r++) {
+                scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
+                  scope.height));
+              }
+            } else {
+              var padsToInit = scope.initPads.split(' ');
+              padsToInit.forEach(function(pad) {
+                var position = pad.split(',');
+                scope.ngModel.switchPad(position[0], position[1]);
+              });
+            }
           }
         });
 
@@ -117,11 +126,13 @@
               case 'vertical':
                 limit = scope.height;
                 measure = scope.width;
+                options.index = options.index % measure;
                 x = options.index;
                 break;
               case 'horizontal':
                 limit = scope.width;
                 measure = scope.height;
+                options.index = options.index % measure;
                 y = options.index;
                 break;
               default:
@@ -148,6 +159,7 @@
               direction: 'vertical',
               index:     index
             });
+            scope.$digest();
           },
           deactivateColumn: function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -156,6 +168,7 @@
               direction: 'vertical',
               index:     index
             });
+            scope.$digest();
           },
           activateRow:      function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -164,6 +177,7 @@
               direction: 'horizontal',
               index:     index
             });
+            scope.$digest();
           },
           deactivateRow:    function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -172,6 +186,7 @@
               direction: 'horizontal',
               index:     index
             });
+            scope.$digest();
           },
           triggerColumn:    function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -180,6 +195,7 @@
               direction: 'vertical',
               index:     index
             });
+            scope.$digest();
           },
           triggerRow:       function(index) {
             scope.ngModel.forEachPad(function(pad, mapping) {
@@ -188,6 +204,7 @@
               direction: 'horizontal',
               index:     index
             });
+            scope.$digest();
           }
         };
       },

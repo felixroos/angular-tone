@@ -21,8 +21,8 @@
       },
       transclude: true,
       link:       function(scope, element) {
-        scope.triggerOnActivate = (scope.triggerOnActivate === 'undefined' ? true : scope.triggerOnActivate);
-        scope.switchOnActivate = (scope.switchOnActivate === 'undefined' ? false : scope.switchOnActivate);
+        scope.triggerOnActivate = true;
+        scope.switchOnActivate = false;
         
         var interpretAction = function(action, perform) {
           if (action.note && scope.instrument) {
@@ -31,10 +31,9 @@
               scope.instrument.triggerAttack(action.note);
             } else if (perform === 'deactivate') {
               scope.instrument.triggerRelease(action.note);
+            } else if (perform === 'trigger') {
+              scope.instrument.triggerAttackRelease(action.note, "8n");
             }
-            /*else if (perform === 'trigger') {
-             scope.instrument.triggerAttackRelease(action.note, "8n");
-             }*/
           }
           if (action.sample) {
             if (perform === 'trigger') {
@@ -53,8 +52,12 @@
               }
             },
             triggerPad:    function(action) {
-              if (action) {
+              if (scope.ngModel.on && action) {
                 interpretAction(action, 'trigger');
+                scope.ngModel.active = true;
+                $timeout(function() {
+                  scope.ngModel.active = false;
+                }, 200);
               }
               if (scope.onTrigger) {
                 scope.onTrigger(scope.ngModel.on, scope.data);
@@ -70,8 +73,8 @@
               }
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
-              } else if (scope.mode === 'trigger') { // && scope.triggerOnActivate
-                scope.ngModel.triggerPad(action);
+              } else if (scope.mode === 'trigger' && scope.triggerOnActivate) {
+                scope.ngModel.triggerPad(action); //experimental
               }
             },
             deactivatePad: function(action) {
