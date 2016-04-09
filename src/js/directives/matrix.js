@@ -13,7 +13,7 @@
         onActivate:   '=?',
         onDeactivate: '=?',
         ngModel:      '=?',
-        padSize:      '@?',
+        padSize:      '=?',
         padMode:      '@?',
         initPads:     '@?',
         mapping:      '@?',
@@ -70,7 +70,6 @@
               };
             }
           }
-          console.debug(pads);
           return pads;
         };
 
@@ -113,7 +112,7 @@
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
             if (scope.initPads === 'random') {
               var r = 0;
-              for (r; r < scope.width * scope.height / 2; r++) {
+              for (r; r < scope.width * scope.height / 4; r++) {
                 scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
                   scope.height));
               }
@@ -127,9 +126,13 @@
           }
         });
 
-        scope.$watch('octave', function() {
-          console.debug('blam');
+        //TODO save matrix state and move up/down octaves without changing notes
+        //TODO pagination in time to move left/right without changing notes and
+        //TODO paginate mapping to display current page/octave!!!
 
+        scope.$watchGroup(['octave', 'scale'], function() {
+          //if(scope.octave&&scope.scale) {
+          $log.debug('changed octave (' + scope.octave + ') or scale (' + scope.scale + ')');
           if (typeof scope.mapping === 'string') {
             mapping = scope.mapping.split(' ');
             if (mapping[0] === 'scale' || mapping[1] === 'scale') {
@@ -137,9 +140,12 @@
             } else if (mapping[0] === 'horizontal' || mapping[0] === 'vertical') {
               control = mapping[0];
             }
-          } //TODO make the scale mapping dynamic to be able to change octave + apply note mapping directly to pads!!!
-
+          }
           scope.padData = loadPadData();
+          //}
+        });
+        scope.$watch('padSize', function() {
+          $log.debug('changed pad size to ', scope.padSize);
         });
 
         scope.ngModel = {
@@ -185,6 +191,10 @@
                 callback(scope.ngModel.getPad(i, y)); //, getMapping(i, y)
               }
             }
+          },
+          changeScale:      function(scale) {
+            console.debug('change scale ', scale);
+            scope.scale = scale;
           },
           clear:            function() {
             if (scope.ngModel.pads) {
@@ -236,15 +246,20 @@
             scope.$digest();
           },
           triggerColumn:    function(index) {
-            scope.ngModel.forEachPad(function(pad) {
-              pad.triggerPad(mapping);
-            }, {
-              direction: 'vertical',
-              index:     index
-            });
+            /* scope.ngModel.deactivateColumn(index ? index - 1 : scope.width - 1);
+             scope.ngModel.activateColumn(index);*/
+             scope.ngModel.forEachPad(function(pad) {
+             pad.triggerPad(mapping);
+             }, {
+             direction: 'vertical',
+             index:     index
+             });
             scope.$digest();
           },
           triggerRow:       function(index) {
+
+            /*scope.ngModel.deactivateRow(index ? index - 1 : scope.height - 1);
+            scope.ngModel.activateRow(index);*/
             scope.ngModel.forEachPad(function(pad) {
               pad.triggerPad(mapping);
             }, {

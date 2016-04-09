@@ -8,6 +8,7 @@
       scope:    {
         ngModel:   '=?',
         autostart: '=?',
+        length:    '=?',
         mute:      '=?',
         onTick:    '=?'
       },
@@ -17,14 +18,23 @@
             scope.playButton.switchPad(true);
           }
         });
+        scope.length = (typeof scope.length === 'number' ? scope.length : 16);
 
-        scope.ngModel = new Tone.Sequence(function(time, col) {
-          //$scope.toneMatrix.triggerColumn(col);
-          //$scope.colTrigger.triggerPad(col, 0);
-          if (typeof scope.onTick === 'function') {
-            scope.onTick(col, time);
+        var updateSequence = function(pattern) {
+          scope.ngModel = new Tone.Sequence(function(time, col) {
+            if (typeof scope.onTick === 'function') {
+              scope.onTick(col, time);
+            }
+          }, pattern, "8n");
+        };
+
+        scope.$watch('length', function() {
+          var n, pattern = [];
+          for (n = 0; n < scope.length; n++) {
+            pattern.push(n);
           }
-        }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "8n");
+          updateSequence(pattern);
+        });
 
         Tone.Transport.start();
         //loop.start();

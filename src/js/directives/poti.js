@@ -12,6 +12,7 @@
         color:     '@?',
         onTrigger: '=?',
         ngModel:   '=?',
+        init:      '=?',
         data:      '=?',
         places:    '=?',
         label:     '@?'
@@ -25,7 +26,7 @@
         scope.max = scope.max || 100;
         scope.range = scope.max - scope.min;
 
-        scope.ngModel = scope.ngModel || scope.min;
+        scope.ngModel = scope.ngModel || scope.init || scope.min;
         scope.style = {
           width:           scope.size + 'px',
           height:          scope.size + 'px',

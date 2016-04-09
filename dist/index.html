@@ -20,34 +20,39 @@
     Press the Pad below to hear a c3.
     Inspect the code to learn how to add an instrument via the template.</p>
   <instrument ng-model="coolSynth" id="coolSynth" type="mono"></instrument>
-  <instrument ng-model="polySynth" id="polySynth" type="poly"></instrument>
+  <instrument ng-model="polySynth" id="polySynth" type="poly" config="{voices:16}"></instrument>
 
   <h2>Pad</h2>
 
-  <p>A pad is a button with two modes: switch (white/blue) and trigger (yellow). switch toggles it between on/off,
-    trigger just activates the pad on mousedown. This pad is in mode trigger and plays a C4 with the instrument when
-    clicked.</p>
+  <p>A pad is a button with three modes: hold (yellow), trigger (red) and switch (white/blue). An active pad turns green.<br/>
+    <li><b>hold</b>: active as long as the mouse is pressed.</li>
+    <li><b>trigger</b> activates on click for a short time.</li>
+    <li><b>switch</b> is either off (white) or on (blue) and
+    triggers when turning on.</li></p>
   <pad instrument="polySynth" action="{note:'C3'}" size="50" mode="hold"></pad>
+  <pad instrument="polySynth" action="{note:'E3'}" size="50" mode="trigger"></pad>
+  <pad instrument="polySynth" action="{note:'G3'}" size="50" mode="switch"></pad>
   <h2>Matrix</h2>
 
   <p>A matrix is a collection of pads that acts as a unit. The following matrix consists of pads with mode=switch. Click
     to toggle on/off!</p>
-  <matrix style="float:left" width="1" height="8" ng-model="rowTrigger" pad-mode="hold" mapping="horizontal"
-          matrix="toneMatrix"></matrix>
-  <matrix width="8" height="8" ng-model="toneMatrix" instrument="polySynth" mapping="time scale"
-          init-pads="random" scale="majorpentatonic" octave="matrixOctave"></matrix>
-  <pad style="float:left" on-trigger="toneMatrix.clear" mode="trigger"></pad>
+  <matrix style="float:left" pad-size="25" width="1" height="8" ng-model="rowTrigger" pad-mode="hold"
+          mapping="horizontal" matrix="toneMatrix"></matrix>
+  <matrix width="8" height="8" ng-model="toneMatrix" init-pads="random" instrument="polySynth" mapping="time scale"
+          pad-size="25" scale="majorpentatonic" octave="matrixOctave"></matrix> <!--  scale="{{matrixScale}}" -->
+  <pad style="float:left" size="25" on-trigger="toneMatrix.clear" mode="trigger"></pad>
 
-  <matrix width="8" height="1" ng-model="colTrigger" pad-mode="hold" mapping="vertical" matrix="toneMatrix"></matrix>
+  <matrix width="8" height="1" pad-size="25" ng-model="colTrigger" pad-mode="hold" mapping="vertical"
+          matrix="toneMatrix"></matrix>
   <p>The yellow matrices consist of pads with mode=trigger. Click to trigger whole columns/rows of the above matrix to
     play all pads
     that are on!</p>
 
   <p>This poti controls the matrix octave:</p>
-  <poti ng-model="matrixOctave" label="octave" size="100" min="1" max="8"></poti>
+  <poti ng-model="matrixOctave" init="2" label="octave" size="50" min="1" max="8"></poti>
   <h2>Loop</h2>
   A Loop has two pads: Play/Stop and Mute/Unmute:
-  <loop ng-model="matrixLoop" autostart="true" on-tick="toneMatrix.triggerColumn"></loop>
+  <loop ng-model="matrixLoop" autostart="true" length="8" on-tick="toneMatrix.triggerColumn"></loop>
 
 
   <h2>Keyboard</h2>
@@ -60,7 +65,7 @@
   <h2>Mixer</h2>
 
   <p>The following Mixer controls the Synthesizers envelope and automatically generates potis for every parameter:</p>
-  <mixer ng-repeat="voice in polySynth.voices" ng-model="voice.envelope"></mixer>
+  <mixer ng-model="coolSynth.envelope"></mixer>
 </div>
 <!-- inject:js -->
 <script src="vendor.js"></script>

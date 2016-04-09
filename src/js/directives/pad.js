@@ -63,11 +63,12 @@
               scope.ngModel.on = false;
             },
             triggerPad:    function() {
+              //TODO CRITICAL: find better way to activate without timeout -> memory leak
               scope.ngModel.active = true;
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on) {
+              if (scope.ngModel.on || scope.mode === 'trigger') {
                 performAction('trigger');
               }
               if (scope.onTrigger) {
@@ -75,7 +76,7 @@
               }
             },
             activatePad:   function() {
-              if ((scope.mode !== 'switch' || scope.ngModel.on)) { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
+              if ((scope.mode === 'switch' || scope.ngModel.on) || scope.mode === 'hold') { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
                 performAction('activate');
               }
               scope.ngModel.active = true;
@@ -85,7 +86,7 @@
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
               } else if (scope.mode === 'trigger') {
-                scope.ngModel.triggerPad(); //experimental
+                scope.ngModel.triggerPad();
               }
             },
             deactivatePad: function() {
@@ -102,11 +103,24 @@
         scope.data = scope.data || {};
         scope.size = scope.size || 50;
         scope.color = scope.color || '#F06';
+
         scope.style = {
           width:  scope.size + 'px',
           height: scope.size + 'px'/*,
            backgroundColor: scope.color*/
         };
+
+        //TODO make size dynamic
+        /*scope.$watch('size', function() {
+         if (typeof scope.size === 'number') {
+         $log.debug('changed pad size to ', scope.size);
+         scope.style = {
+         width:  scope.size + 'px',
+         height: scope.size + 'px'/!*,
+         backgroundColor: scope.color*!/
+         };
+         }
+         });*/
 
         scope.clickedPad = function(action) {
           if (scope.mode === 'switch') {

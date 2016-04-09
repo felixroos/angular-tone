@@ -3,7 +3,7 @@ body {
 
 .tone-pad {
   display: inline-block;
-  margin: 2px 4px;
+  margin: 0px 2px;
   border: 1px solid #000; }
   .tone-pad.hold {
     background-color: #f3e939; }
@@ -39,6 +39,7 @@ body {
       .tone-poti .poti-container .poti-rotator:before {
         pointer-events: none;
         content: '';
+        min-width: 2px;
         width: 2%;
         margin-left: 49%;
         height: 30%;
