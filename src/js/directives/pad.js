@@ -24,24 +24,26 @@
         scope.triggerOnActivate = (typeof scope.triggerOnActivate === 'undefined' ? false : scope.triggerOnActivate);
         scope.switchOnActivate = false;
         
-        var interpretAction = function(action, perform) {
-          if (action.note && scope.instrument) {
-            if (perform === 'activate') {
-              $log.debug(perform + ' note ' + action.note);
-              scope.instrument.triggerAttack(action.note);
-            } else if (perform === 'deactivate') {
-              scope.instrument.triggerRelease(action.note);
-            } else if (perform === 'trigger') {
-              scope.instrument.triggerAttackRelease(action.note, "8n");
+        var performAction = function(perform) {
+          if (scope.action) {
+            if (scope.action.note && scope.instrument) {
+              if (perform === 'activate') {
+                $log.debug(perform + ' note ' + scope.action.note);
+                scope.instrument.triggerAttack(scope.action.note);
+              } else if (perform === 'deactivate') {
+                scope.instrument.triggerRelease(scope.action.note);
+              } else if (perform === 'trigger') {
+                scope.instrument.triggerAttackRelease(scope.action.note, "8n");
+              }
             }
-          }
-          if (action.sample) {
-            if (perform === 'trigger') {
-              $log.debug('play sample...');
+            if (scope.action.sample) {
+              if (perform === 'trigger') {
+                $log.debug('play sample...');
+              }
             }
           }
         };
-        
+
         scope.ngModel = scope.ngModel || {
             on:            false,
             active:        false,
@@ -60,22 +62,21 @@
             switchOff:     function() {
               scope.ngModel.on = false;
             },
-            triggerPad:    function(action) {
+            triggerPad:    function() {
               scope.ngModel.active = true;
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on && action) {
-                interpretAction(action, 'trigger');
+              if (scope.ngModel.on) {
+                performAction('trigger');
               }
               if (scope.onTrigger) {
                 scope.onTrigger(scope.ngModel.on, scope.data);
               }
             },
-            activatePad:   function(action) {
-              if (action &&
-                ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'trigger' || scope.mode === 'hold')) {
-                interpretAction(action, 'activate');
+            activatePad:   function() {
+              if ((scope.mode !== 'switch' || scope.ngModel.on)) { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
+                performAction('activate');
               }
               scope.ngModel.active = true;
               if (scope.onActivate) {
@@ -84,14 +85,12 @@
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
               } else if (scope.mode === 'trigger') {
-                scope.ngModel.triggerPad(action); //experimental
+                scope.ngModel.triggerPad(); //experimental
               }
             },
-            deactivatePad: function(action) {
+            deactivatePad: function() {
               if (scope.ngModel.active) {
-                if (action) {
-                  interpretAction(action, 'deactivate');
-                }
+                performAction('deactivate');
                 scope.ngModel.active = false;
                 if (scope.onDeactivate) {
                   scope.onDeactivate(scope.ngModel.on, scope.data);

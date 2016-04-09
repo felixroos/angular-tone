@@ -7,7 +7,7 @@
     Instruments) {
     $log.info('welcome to the angular-tone demo!');
 
-    $scope.matrixOctave = 4;
+    $scope.matrixOctave = 3;
     var a4, scale;
     $scope.$watch('matrixOctave', function() {
       a4 = teoria.note('c' + $scope.matrixOctave);

@@ -160,7 +160,7 @@
         mapping:      '@?',
         root:         '@',
         scale:        '@?',
-        octave:       '=?', //TODO
+        octave:       '=?',
         instrument:   '=?',
         matrix:       '=?'
       },
@@ -170,21 +170,49 @@
         scope.padSize = typeof scope.padSize === 'number' ? scope.padSize : 50;
         scope.padMode = scope.padMode || 'switch';
 
-        var mapping, control, root  = scope.root || "c", scale = scope.scale ||
-          "minorpentatonic", octave = scope.octave || "4";
-
-        if (typeof scope.mapping === 'string') {
-          mapping = scope.mapping.split(' ');
-          if (mapping[0] === 'scale' || mapping[1] === 'scale') {
-            root = teoria.note(root + octave);
-            scale = root.scale(scale).notes();
-          } else if (mapping[0] === 'horizontal' || mapping[0] === 'vertical') {
-            control = mapping[0];
-          }
-        }
+        var mapping, control;
 
         scope.getNumber = function(num) {
           return new Array(num);
+        };
+
+        var getNotes = function() {
+          var root   = scope.root || "c", scale = scope.scale || "minorpentatonic", octave = scope.octave ||
+            4, notes = [];
+          var measure = scope.width > scope.height ? scope.width : scope.height;
+          //get all notes that fit into the matrix, starting from root
+          while (notes.length < measure) {
+            ++octave;
+            notes.push.apply(notes, teoria.note(root + octave).scale(scale).notes());
+          }
+          return notes;
+        };
+
+        var getMapping = function(x, y) {
+          if (mapping && scope.notes) {
+            if (mapping[0] === 'scale') {
+              return {note: scope.notes[x].scientific()};
+            }
+            if (mapping[1] === 'scale') {
+              return {note: scope.notes[(scope.height - 1 - y)].scientific()};
+            }
+          }
+        };
+
+        var loadPadData = function() {
+          var x, y, pads = new Array(scope.height);
+          for (y = 0; y < scope.height; y++) {
+            pads[y] = new Array(scope.width);
+            for (x = 0; x < scope.width; x++) {
+              pads[y][x] = {
+                x:      x,
+                y:      y,
+                action: getMapping(x, y)
+              };
+            }
+          }
+          console.debug(pads);
+          return pads;
         };
 
         scope.cellTriggered = function(active, position) {
@@ -195,8 +223,8 @@
 
         scope.cellActivated = function(active, position) {
           if (scope.matrix && control) {
-            scope.matrix.forEachPad(function(pad, mapping) {
-              pad.activatePad(mapping);
+            scope.matrix.forEachPad(function(pad) {
+              pad.activatePad();
             }, {
               direction: control,
               index:     control === 'horizontal' ? position.y : position.x
@@ -209,8 +237,8 @@
 
         scope.cellDeactivated = function(active, position) {
           if (scope.matrix && control) {
-            scope.matrix.forEachPad(function(pad, mapping) {
-              pad.deactivatePad(mapping);
+            scope.matrix.forEachPad(function(pad) {
+              pad.deactivatePad();
             }, {
               direction: control,
               index:     control === 'horizontal' ? position.y : position.x
@@ -240,19 +268,24 @@
           }
         });
 
+        scope.$watch('octave', function() {
+          console.debug('blam');
+
+          if (typeof scope.mapping === 'string') {
+            mapping = scope.mapping.split(' ');
+            if (mapping[0] === 'scale' || mapping[1] === 'scale') {
+              scope.notes = getNotes();
+            } else if (mapping[0] === 'horizontal' || mapping[0] === 'vertical') {
+              control = mapping[0];
+            }
+          } //TODO make the scale mapping dynamic to be able to change octave + apply note mapping directly to pads!!!
+
+          scope.padData = loadPadData();
+        });
+
         scope.ngModel = {
           getPad:           function(x, y) {
             return scope.ngModel.pads[y][x];
-          },
-          getMapping:       function(x, y) {
-            if (mapping && scale) {
-              if (mapping[0] === 'scale') {
-                return {note: scale[x % scale.length].scientific()};
-              }
-              if (mapping[1] === 'scale') {
-                return {note: scale[(scope.height - 1 - y) % scale.length].scientific()};
-              }
-            }
           },
           triggerPad:       function(x, y) {
             return scope.ngModel.getPad(x, y).triggerPad();
@@ -288,9 +321,9 @@
             for (i; i < limit; i++) {
 
               if (options.direction === 'vertical') {
-                callback(scope.ngModel.getPad(x, i), scope.ngModel.getMapping(x, i));
+                callback(scope.ngModel.getPad(x, i)); //, getMapping(x, i)
               } else if (options.direction === 'horizontal') {
-                callback(scope.ngModel.getPad(i, y), scope.ngModel.getMapping(i, y));
+                callback(scope.ngModel.getPad(i, y)); //, getMapping(i, y)
               }
             }
           },
@@ -308,7 +341,7 @@
             }
           },
           activateColumn:   function(index) {
-            scope.ngModel.forEachPad(function(pad, mapping) {
+            scope.ngModel.forEachPad(function(pad) {
               pad.activatePad(mapping);
             }, {
               direction: 'vertical',
@@ -317,7 +350,7 @@
             scope.$digest();
           },
           deactivateColumn: function(index) {
-            scope.ngModel.forEachPad(function(pad, mapping) {
+            scope.ngModel.forEachPad(function(pad) {
               pad.deactivatePad(mapping);
             }, {
               direction: 'vertical',
@@ -326,7 +359,7 @@
             scope.$digest();
           },
           activateRow:      function(index) {
-            scope.ngModel.forEachPad(function(pad, mapping) {
+            scope.ngModel.forEachPad(function(pad) {
               pad.activatePad(mapping);
             }, {
               direction: 'horizontal',
@@ -335,7 +368,7 @@
             scope.$digest();
           },
           deactivateRow:    function(index) {
-            scope.ngModel.forEachPad(function(pad, mapping) {
+            scope.ngModel.forEachPad(function(pad) {
               pad.deactivatePad(mapping);
             }, {
               direction: 'horizontal',
@@ -344,7 +377,7 @@
             scope.$digest();
           },
           triggerColumn:    function(index) {
-            scope.ngModel.forEachPad(function(pad, mapping) {
+            scope.ngModel.forEachPad(function(pad) {
               pad.triggerPad(mapping);
             }, {
               direction: 'vertical',
@@ -353,7 +386,7 @@
             scope.$digest();
           },
           triggerRow:       function(index) {
-            scope.ngModel.forEachPad(function(pad, mapping) {
+            scope.ngModel.forEachPad(function(pad) {
               pad.triggerPad(mapping);
             }, {
               direction: 'horizontal',
@@ -363,7 +396,10 @@
           }
         };
       },
-      template: '<div class="matrix"><div class="row" ng-repeat="(m,i) in getNumber(height) track by $index"><pad size="{{padSize}}" ng-repeat="(n,j) in getNumber(width) track by $index" on-activate="cellActivated" on-deactivate="cellDeactivated" on-trigger="cellTriggered" data="{x:n,y:m}" ng-model="ngModel.pads[m][n]" mode="{{padMode}}" instrument="instrument"></pad></div></div>'
+      template: '<div class="matrix"><div class="row" ng-repeat="row in padData track by $index"><pad ng-repeat="cellData in row track by $index" ' +
+                'size="{{padSize}}" on-activate="cellActivated" ' +
+                'on-deactivate="cellDeactivated" on-trigger="cellTriggered" data="cellData" action="cellData.action" ng-model="ngModel.pads[cellData.y][cellData.x]" ' +
+                'mode="{{padMode}}" instrument="instrument"></pad></div></div></div>'
     };
   });
 }());
@@ -419,24 +455,26 @@
         scope.triggerOnActivate = (typeof scope.triggerOnActivate === 'undefined' ? false : scope.triggerOnActivate);
         scope.switchOnActivate = false;
         
-        var interpretAction = function(action, perform) {
-          if (action.note && scope.instrument) {
-            if (perform === 'activate') {
-              $log.debug(perform + ' note ' + action.note);
-              scope.instrument.triggerAttack(action.note);
-            } else if (perform === 'deactivate') {
-              scope.instrument.triggerRelease(action.note);
-            } else if (perform === 'trigger') {
-              scope.instrument.triggerAttackRelease(action.note, "8n");
+        var performAction = function(perform) {
+          if (scope.action) {
+            if (scope.action.note && scope.instrument) {
+              if (perform === 'activate') {
+                $log.debug(perform + ' note ' + scope.action.note);
+                scope.instrument.triggerAttack(scope.action.note);
+              } else if (perform === 'deactivate') {
+                scope.instrument.triggerRelease(scope.action.note);
+              } else if (perform === 'trigger') {
+                scope.instrument.triggerAttackRelease(scope.action.note, "8n");
+              }
             }
-          }
-          if (action.sample) {
-            if (perform === 'trigger') {
-              $log.debug('play sample...');
+            if (scope.action.sample) {
+              if (perform === 'trigger') {
+                $log.debug('play sample...');
+              }
             }
           }
         };
-        
+
         scope.ngModel = scope.ngModel || {
             on:            false,
             active:        false,
@@ -455,22 +493,21 @@
             switchOff:     function() {
               scope.ngModel.on = false;
             },
-            triggerPad:    function(action) {
+            triggerPad:    function() {
               scope.ngModel.active = true;
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on && action) {
-                interpretAction(action, 'trigger');
+              if (scope.ngModel.on) {
+                performAction('trigger');
               }
               if (scope.onTrigger) {
                 scope.onTrigger(scope.ngModel.on, scope.data);
               }
             },
-            activatePad:   function(action) {
-              if (action &&
-                ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'trigger' || scope.mode === 'hold')) {
-                interpretAction(action, 'activate');
+            activatePad:   function() {
+              if ((scope.mode !== 'switch' || scope.ngModel.on)) { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
+                performAction('activate');
               }
               scope.ngModel.active = true;
               if (scope.onActivate) {
@@ -479,14 +516,12 @@
               if (scope.mode === 'switch' && scope.switchOnActivate) {
                 scope.ngModel.switchPad(scope.triggerOnActivate);
               } else if (scope.mode === 'trigger') {
-                scope.ngModel.triggerPad(action); //experimental
+                scope.ngModel.triggerPad(); //experimental
               }
             },
-            deactivatePad: function(action) {
+            deactivatePad: function() {
               if (scope.ngModel.active) {
-                if (action) {
-                  interpretAction(action, 'deactivate');
-                }
+                performAction('deactivate');
                 scope.ngModel.active = false;
                 if (scope.onDeactivate) {
                   scope.onDeactivate(scope.ngModel.on, scope.data);
