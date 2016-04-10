@@ -35,7 +35,8 @@
         };
 
         scope.rotatorStyle = {
-          borderWidth: scope.size / 40 + 'px'
+          /*
+           borderWidth: scope.size / 40 + 'px'*/
         };
         scope.$watch('ngModel', function() {
           if (typeof scope.ngModel === 'number') {
@@ -65,7 +66,7 @@
           }
         };
       },
-      template: '<div class="tone-poti noselect"><div ng-style="style" ng-mousedown="dragStart($event)" ng-mouseup="dragEnd()" ng-mousemove="dragMove($event)" ng-mouseleave="dragEnd()" ng-class="{\'active\':ngModel}" class="poti-container"><div class="poti-rotator" ng-style="rotatorStyle"></div></div><div class="poti-value">{{ngModel}}</div><div class="poti-label">{{label}}</div></div>' //
+      template: '<div class="tone-poti noselect" ng-style="{width:size+\'px\'}"><div ng-style="style" ng-mousedown="dragStart($event)" ng-mouseup="dragEnd()" ng-mousemove="dragMove($event)" ng-mouseleave="dragEnd()" ng-class="{\'active\':ngModel}" class="poti-container"><div class="poti-rotator" ng-style="rotatorStyle"></div></div><div class="poti-value">{{ngModel}}</div><div class="poti-label">{{label}}</div></div>' //
     };
   });
 }());

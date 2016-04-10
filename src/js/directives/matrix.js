@@ -21,7 +21,8 @@
         scale:        '@?',
         octave:       '=?',
         instrument:   '=?',
-        matrix:       '=?'
+        matrix:       '=?',
+        showLabels:   '=?'
       },
       link:     function(scope) {
         scope.width = typeof scope.width === "number" ? scope.width : 4;
@@ -111,11 +112,7 @@
           $log.debug('matrix pads loaded');
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
             if (scope.initPads === 'random') {
-              var r = 0;
-              for (r; r < scope.width * scope.height / 4; r++) {
-                scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
-                  scope.height));
-              }
+              scope.ngModel.randomize();
             } else {
               var padsToInit = scope.initPads.split(' ');
               padsToInit.forEach(function(pad) {
@@ -192,6 +189,15 @@
               }
             }
           },
+          randomize:        function(chance) {
+            var r = 0;
+            scope.ngModel.clear();
+            chance = chance || 0.3;
+            for (r; r < scope.width * scope.height * chance; r++) {
+              scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
+                scope.height));
+            }
+          },
           changeScale:      function(scale) {
             console.debug('change scale ', scale);
             scope.scale = scale;
@@ -248,18 +254,18 @@
           triggerColumn:    function(index) {
             /* scope.ngModel.deactivateColumn(index ? index - 1 : scope.width - 1);
              scope.ngModel.activateColumn(index);*/
-             scope.ngModel.forEachPad(function(pad) {
-             pad.triggerPad(mapping);
-             }, {
-             direction: 'vertical',
-             index:     index
-             });
+            scope.ngModel.forEachPad(function(pad) {
+              pad.triggerPad(mapping);
+            }, {
+              direction: 'vertical',
+              index:     index
+            });
             scope.$digest();
           },
           triggerRow:       function(index) {
 
             /*scope.ngModel.deactivateRow(index ? index - 1 : scope.height - 1);
-            scope.ngModel.activateRow(index);*/
+             scope.ngModel.activateRow(index);*/
             scope.ngModel.forEachPad(function(pad) {
               pad.triggerPad(mapping);
             }, {
@@ -273,7 +279,7 @@
       template: '<div class="matrix"><div class="row" ng-repeat="row in padData track by $index"><pad ng-repeat="cellData in row track by $index" ' +
                 'size="{{padSize}}" on-activate="cellActivated" ' +
                 'on-deactivate="cellDeactivated" on-trigger="cellTriggered" data="cellData" action="cellData.action" ng-model="ngModel.pads[cellData.y][cellData.x]" ' +
-                'mode="{{padMode}}" instrument="instrument"></pad></div></div></div>'
+                'mode="{{padMode}}" instrument="instrument">{{showLabels?cellData.action.note:\'\'}}</pad></div></div><div class="clearfix"></div></div>'
     };
   });
 }());

@@ -10,11 +10,12 @@
         autostart: '=?',
         length:    '=?',
         mute:      '=?',
-        onTick:    '=?'
+        onTick:    '=?',
+        reverse:   '=?'
       },
       link:     function(scope) {
         scope.$watch('playButton', function() {
-          if (scope.playButton) {
+          if (scope.playButton && scope.autostart) {
             scope.playButton.switchPad(true);
           }
         });
@@ -23,7 +24,11 @@
         var updateSequence = function(pattern) {
           scope.ngModel = new Tone.Sequence(function(time, col) {
             if (typeof scope.onTick === 'function') {
-              scope.onTick(col, time);
+              if (!scope.reverse) {
+                scope.onTick(col, time);
+              } else {
+                scope.onTick(scope.length - col, time);
+              }
             }
           }, pattern, "8n");
         };
@@ -53,7 +58,9 @@
             scope.ngModel.stop();
           }
         });
-        scope.$w
+        scope.reverseLoop = function() {
+          scope.reverse = !scope.reverse;
+        };
         scope.toggleMute = function(active) {
           scope.mute = active;
         };
@@ -61,7 +68,11 @@
           scope.ngModel.mute = scope.mute;
         });
       },
-      template: '<div class="tone-sequencer noselect"><pad ng-model="playButton" on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="replay" mode="trigger"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
+      template: '<div class="tone-loop pads noselect">' +
+                '<pad ng-model="playButton" on-trigger="togglePlay" mode="switch"><div tone-icon="play_arrow"></div></pad>' +
+                '<pad on-trigger="replay" mode="trigger"><div tone-icon="replay"></div></pad>' +
+                '<pad on-trigger="toggleMute" mode="switch"><div tone-icon="volume_mute"></div></pad>' +
+                '<pad on-trigger="reverseLoop" mode="switch"><div tone-icon="swap_horiz"></div></pad></div>'
     };
   });
 }());

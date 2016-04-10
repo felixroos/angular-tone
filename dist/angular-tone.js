@@ -12,6 +12,21 @@
  */
 (function() {
   'use strict';
+  angular.module('ec.angular.tone').directive('toneIcon', function() {
+    return {
+      restrict: 'A',
+      scope:    {
+        toneIcon: '@'
+      },
+      template: '<i class="material-icons tone-icon">{{toneIcon}}</i>'
+    };
+  });
+}());
+/**
+ * Created by felix on 07.04.16.
+ */
+(function() {
+  'use strict';
   angular.module('ec.angular.tone').directive('instrument', function($log, Instruments) {
     return {
       restrict: 'E',
@@ -94,11 +109,12 @@
         autostart: '=?',
         length:    '=?',
         mute:      '=?',
-        onTick:    '=?'
+        onTick:    '=?',
+        reverse:   '=?'
       },
       link:     function(scope) {
         scope.$watch('playButton', function() {
-          if (scope.playButton) {
+          if (scope.playButton && scope.autostart) {
             scope.playButton.switchPad(true);
           }
         });
@@ -107,7 +123,11 @@
         var updateSequence = function(pattern) {
           scope.ngModel = new Tone.Sequence(function(time, col) {
             if (typeof scope.onTick === 'function') {
-              scope.onTick(col, time);
+              if (!scope.reverse) {
+                scope.onTick(col, time);
+              } else {
+                scope.onTick(scope.length - col, time);
+              }
             }
           }, pattern, "8n");
         };
@@ -137,7 +157,9 @@
             scope.ngModel.stop();
           }
         });
-        scope.$w
+        scope.reverseLoop = function() {
+          scope.reverse = !scope.reverse;
+        };
         scope.toggleMute = function(active) {
           scope.mute = active;
         };
@@ -145,7 +167,11 @@
           scope.ngModel.mute = scope.mute;
         });
       },
-      template: '<div class="tone-sequencer noselect"><pad ng-model="playButton" on-trigger="togglePlay" mode="switch"></pad><pad on-trigger="replay" mode="trigger"></pad><pad on-trigger="toggleMute" mode="switch"></pad></div>' //
+      template: '<div class="tone-loop pads noselect">' +
+                '<pad ng-model="playButton" on-trigger="togglePlay" mode="switch"><div tone-icon="play_arrow"></div></pad>' +
+                '<pad on-trigger="replay" mode="trigger"><div tone-icon="replay"></div></pad>' +
+                '<pad on-trigger="toggleMute" mode="switch"><div tone-icon="volume_mute"></div></pad>' +
+                '<pad on-trigger="reverseLoop" mode="switch"><div tone-icon="swap_horiz"></div></pad></div>'
     };
   });
 }());
@@ -172,7 +198,8 @@
         scale:        '@?',
         octave:       '=?',
         instrument:   '=?',
-        matrix:       '=?'
+        matrix:       '=?',
+        showLabels:   '=?'
       },
       link:     function(scope) {
         scope.width = typeof scope.width === "number" ? scope.width : 4;
@@ -262,11 +289,7 @@
           $log.debug('matrix pads loaded');
           if (typeof scope.ngModel.pads === 'object' && typeof scope.initPads === 'string') {
             if (scope.initPads === 'random') {
-              var r = 0;
-              for (r; r < scope.width * scope.height / 4; r++) {
-                scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
-                  scope.height));
-              }
+              scope.ngModel.randomize();
             } else {
               var padsToInit = scope.initPads.split(' ');
               padsToInit.forEach(function(pad) {
@@ -343,6 +366,15 @@
               }
             }
           },
+          randomize:        function(chance) {
+            var r = 0;
+            scope.ngModel.clear();
+            chance = chance || 0.3;
+            for (r; r < scope.width * scope.height * chance; r++) {
+              scope.ngModel.switchPad(Math.floor(Math.random() * scope.width), Math.floor(Math.random() *
+                scope.height));
+            }
+          },
           changeScale:      function(scale) {
             console.debug('change scale ', scale);
             scope.scale = scale;
@@ -399,18 +431,18 @@
           triggerColumn:    function(index) {
             /* scope.ngModel.deactivateColumn(index ? index - 1 : scope.width - 1);
              scope.ngModel.activateColumn(index);*/
-             scope.ngModel.forEachPad(function(pad) {
-             pad.triggerPad(mapping);
-             }, {
-             direction: 'vertical',
-             index:     index
-             });
+            scope.ngModel.forEachPad(function(pad) {
+              pad.triggerPad(mapping);
+            }, {
+              direction: 'vertical',
+              index:     index
+            });
             scope.$digest();
           },
           triggerRow:       function(index) {
 
             /*scope.ngModel.deactivateRow(index ? index - 1 : scope.height - 1);
-            scope.ngModel.activateRow(index);*/
+             scope.ngModel.activateRow(index);*/
             scope.ngModel.forEachPad(function(pad) {
               pad.triggerPad(mapping);
             }, {
@@ -424,7 +456,7 @@
       template: '<div class="matrix"><div class="row" ng-repeat="row in padData track by $index"><pad ng-repeat="cellData in row track by $index" ' +
                 'size="{{padSize}}" on-activate="cellActivated" ' +
                 'on-deactivate="cellDeactivated" on-trigger="cellTriggered" data="cellData" action="cellData.action" ng-model="ngModel.pads[cellData.y][cellData.x]" ' +
-                'mode="{{padMode}}" instrument="instrument"></pad></div></div></div>'
+                'mode="{{padMode}}" instrument="instrument">{{showLabels?cellData.action.note:\'\'}}</pad></div></div><div class="clearfix"></div></div>'
     };
   });
 }());
@@ -436,12 +468,14 @@
   angular.module('ec.angular.tone').directive('mixer', function($log) {
     return {
       scope:    {
-        ngModel: '=?'
+        ngModel:  '=?',
+        potiSize: '=?'
       },
       link:     function(scope) {
         scope.isNumber = function(value) {
           return typeof value === 'number';
         };
+        scope.potiSize = (typeof scope.potiSize === 'numeric' ? scope.potiSize : 50);
         scope.loading = true;
         scope.$watch('ngModel', function() {
           if (typeof scope.ngModel === 'object') {
@@ -450,7 +484,7 @@
           }
         });
       },
-      template: '<div class="tone-mixer" ng-if="!loading"><poti ng-if="isNumber(param)" label="{{key}}" ng-repeat="(key, param) in ngModel" ng-model="param"></poti></div>'
+      template: '<div class="tone-mixer potis" ng-if="!loading"><poti size="{{potiSize}}" ng-if="isNumber(param)" label="{{key}}" ng-repeat="(key, param) in ngModel" ng-model="param"></poti></div>'
     };
   });
 }());
@@ -524,7 +558,7 @@
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on || scope.mode === 'trigger') {
+              if (scope.ngModel.on) { // || scope.mode === 'trigger'
                 performAction('trigger');
               }
               if (scope.onTrigger) {
@@ -627,7 +661,8 @@
         };
 
         scope.rotatorStyle = {
-          borderWidth: scope.size / 40 + 'px'
+          /*
+           borderWidth: scope.size / 40 + 'px'*/
         };
         scope.$watch('ngModel', function() {
           if (typeof scope.ngModel === 'number') {
@@ -657,7 +692,7 @@
           }
         };
       },
-      template: '<div class="tone-poti noselect"><div ng-style="style" ng-mousedown="dragStart($event)" ng-mouseup="dragEnd()" ng-mousemove="dragMove($event)" ng-mouseleave="dragEnd()" ng-class="{\'active\':ngModel}" class="poti-container"><div class="poti-rotator" ng-style="rotatorStyle"></div></div><div class="poti-value">{{ngModel}}</div><div class="poti-label">{{label}}</div></div>' //
+      template: '<div class="tone-poti noselect" ng-style="{width:size+\'px\'}"><div ng-style="style" ng-mousedown="dragStart($event)" ng-mouseup="dragEnd()" ng-mousemove="dragMove($event)" ng-mouseleave="dragEnd()" ng-class="{\'active\':ngModel}" class="poti-container"><div class="poti-rotator" ng-style="rotatorStyle"></div></div><div class="poti-value">{{ngModel}}</div><div class="poti-label">{{label}}</div></div>' //
     };
   });
 }());

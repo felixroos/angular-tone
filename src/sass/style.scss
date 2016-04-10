@@ -1,11 +1,20 @@
 body {
-  background-color: #fff;
+  color: #000;
+  background: #fff;
+  font-family: "Lucida Console", Monaco, monospace;
 }
 
 .tone-pad {
-  display: inline-block;
-  margin: 0px 2px;
-  border: 1px solid #000;
+  display: block;
+  position: relative;
+  margin: 2px 2px;
+  border: 2px solid #000;
+  text-decoration: none;
+  text-align: center;
+  color: #2e2e2e;
+  background-color: #f7f7f7;
+  //border-radius: 50%;
+  border-radius: 9%;
   &.hold {
     background-color: #f3e939;
   }
@@ -20,9 +29,23 @@ body {
   }
 }
 
+.pads {
+  display: flex;
+}
+
+.tone-mixer {
+  clear: both;
+  .tone-poti {
+    float: left;
+  }
+}
+
 .tone-poti {
-  display: inline-block;
+  display: block;
   position: relative;
+  padding: 1em 0;
+  margin: 2px 2px;
+  font-size: 0.7em;
   .poti-container {
     position: relative;
     left: 0;
@@ -30,12 +53,15 @@ body {
     width: 0;
     height: 0;
     margin: 4px;
+    border-width: 2px;
     overflow: hidden;
     display: inline-block;
     .poti-rotator {
+      opacity: 0.9;
       width: 100%;
       height: 100%;
       margin: 0;
+      border-width: 2px;
       border-radius: inherit;
       border-style: solid;
       box-sizing: border-box;
@@ -48,7 +74,7 @@ body {
         min-width: 2px;
         width: 2%;
         margin-left: 49%;
-        height: 30%;
+        height: 40%;
         display: block;
         background-color: #000;
       }
@@ -56,7 +82,10 @@ body {
   }
   .poti-value, .poti-label {
     position: absolute;
-    pointer-events: none;
+    pointer-events: none;/*
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, 0)*/
   }
   .poti-value {
     top: 0;
@@ -64,6 +93,34 @@ body {
   .poti-label {
     bottom: 0;
   }
+}
+
+.matrix {
+  display: block;
+  .tone-pad {
+    display: block;
+    float: left;
+  }
+  .row {
+    clear: both;
+    //clear: left;
+  }
+}
+
+.toleft {
+  float: left;
+}
+
+.clearfix {
+  clear: both;
+}
+
+.tone-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%)
 }
 
 .noselect {

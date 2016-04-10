@@ -68,7 +68,7 @@
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on || scope.mode === 'trigger') {
+              if (scope.ngModel.on) { // || scope.mode === 'trigger'
                 performAction('trigger');
               }
               if (scope.onTrigger) {
