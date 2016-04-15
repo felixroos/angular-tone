@@ -21,7 +21,9 @@
     Press the Pad below to hear a c3.
     Inspect the code to learn how to add an instrument via the template.</p>
   <instrument ng-model="coolSynth" id="coolSynth" type="mono"></instrument>
-  <instrument ng-model="polySynth" id="polySynth" type="poly" config="{voices:16}"></instrument>
+  <!--<instrument ng-model="polySynth" id="polySynth" type="poly" config="{voices:8}"></instrument>-->
+  <instrument ng-model="polySynth" id="polySynth" type="poly"
+              config="{voices:8, oscillator: {partials:[0,2,3]},envelope:{attack:0.01,release:3}}"></instrument>
 
   <h2>Pad</h2>
 
@@ -37,6 +39,7 @@
     <pad instrument="polySynth" action="{note:'C3'}" size="50" mode="hold"></pad>
     <pad instrument="polySynth" action="{note:'E3'}" size="50" mode="trigger"></pad>
     <pad instrument="polySynth" action="{note:'G3'}" size="50" mode="switch"></pad>
+    <pad instrument="polySynth" action="{note:'C4',chord:'major'}" size="50" mode="hold">cmaj</pad>
   </div>
 
   <h2>Loop</h2>
@@ -48,38 +51,52 @@
 
   <p>A matrix is a collection of pads that acts as a unit. The following matrix consists of pads with mode=switch. Click
     to toggle on/off!</p>
+  <!--<poti type="filter" parameter="frequency" target="polySynth" max="6000"></poti>-->
+  <poti type="envelope" parameter="attack" target="polySynth" init="0.1" max="10" places="2" label="attack"></poti>
+  <div class="pads">
 
-  <div class="matrix">
+    <!--<loop ng-model="matrixLoop" autostart="false" length="8" on-tick="toneMatrix.triggerColumn"></loop>-->
     <pad on-trigger="toneMatrix.clear" mode="trigger">
       <div tone-icon="clear"></div>
     </pad>
     <pad on-trigger="toneMatrix.randomize" mode="trigger">
       <div tone-icon="shuffle"></div>
     </pad>
+    <poti value="matrixRoot" label="root" size="50" min="0" max="11" init="0"
+          values="['c','db','d','eb','e','f','gb','g','ab','a','bb','b']"></poti>
+    <poti ng-model="matrixOctave" init="3" label="octave" size="50" min="2" max="6"></poti>
+    <poti ng-model="matrixOffset" label="offset" size="50" min="0" max="11" init="0"></poti>
+    <poti value="matrixScale" label="scale" size="50" init="8"
+          values="['major','minor','dorian','phrygian','lydian','mixolydian','aeolian','locrian','majorpentatonic','minorpentatonic','chromatic','blues','doubleharmonic','flamenco','harmonicminor','melodicminor','wholetone']"></poti>
   </div>
   <matrix width="8" height="8" ng-model="toneMatrix" init-pads="random" instrument="polySynth" mapping="time scale"
-          scale="dorian" octave="matrixOctave" show-labels="false"></matrix> <!--  scale="{{matrixScale}}" -->
+          scale="{{matrixScale}}" root="{{matrixRoot}}" octave="matrixOctave" scale-offset="matrixOffset"
+          show-labels="true"></matrix>
+  <!--  scale="{{matrixScale}}" -->
 
   <matrix width="8" height="1" ng-model="colTrigger" pad-mode="hold" mapping="vertical"
           matrix="toneMatrix"></matrix>
-  <p>The yellow matrices consist of pads with mode=trigger. Click to trigger whole columns/rows of the above matrix to
-    play all pads
-    that are on!</p>
 
-  <p>This poti controls the matrix octave:</p>
-  <poti ng-model="matrixOctave" init="2" label="octave" size="50" min="1" max="8"></poti>
+  <p>The yellow matrix controls whole columns of the above matrix to hold activate all pads that are on!</p>
 
+  <!--<p>Those potis controls the matrix octave and scale:</p>
+
+  <div class="potis">
+    <poti ng-model="matrixOctave" init="2" label="octave" size="50" min="1" max="8"></poti>
+    <poti ng-model="test" value="matrixScale" label="scale" size="50"
+          values="['minorpentatonic','majorpentatonic','blues']"></poti>
+  </div>-->
   <h2>Keyboard</h2>
 
   <p>Angular wrapper for <a href="http://stuartmemo.com/qwerty-hancock/">Qwerty Hancock</a>, with extra options to
     connect with ToneJS:</p>
   <keyboard id="cool" width="500" synth="polySynth"></keyboard>
   <h2>Poti</h2>
-  <poti ng-model="coolSynth.envelope.attack" label="attack" size="20" min="0" max="5" places="2"></poti>
+  <poti ng-model="polySynth.envelope.attack" label="attack" size="50" min="0" max="5" places="2"></poti>
   <h2>Mixer</h2>
 
   <p>The following Mixer controls the Synthesizers envelope and automatically generates potis for every parameter:</p>
-  <mixer ng-model="coolSynth.envelope"></mixer>
+  <mixer ng-model="polySynth.envelope"></mixer>
 </div>
 <!-- inject:js -->
 <!-- endinject -->

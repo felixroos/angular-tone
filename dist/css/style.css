@@ -5,6 +5,7 @@ body {
 
 .tone-pad {
   display: block;
+  cursor: pointer;
   position: relative;
   margin: 2px 2px;
   border: 2px solid #000;
@@ -22,8 +23,10 @@ body {
   .tone-pad.active {
     background-color: #00AA00; }
 
-.pads {
+.pads, .potis {
   display: flex; }
+  .pads .tone-poti, .potis .tone-poti {
+    padding: 0; }
 
 .tone-mixer {
   clear: both; }
@@ -33,18 +36,18 @@ body {
 .tone-poti {
   display: block;
   position: relative;
-  padding: 1em 0;
-  margin: 2px 2px;
+  padding: 0;
+  margin: 4px;
   font-size: 0.7em; }
   .tone-poti .poti-container {
     position: relative;
+    text-align: center;
     left: 0;
     cursor: pointer;
     width: 0;
     height: 0;
-    margin: 4px;
+    margin: 0;
     border-width: 2px;
-    overflow: hidden;
     display: inline-block; }
     .tone-poti .poti-container .poti-rotator {
       opacity: 0.9;
@@ -68,16 +71,22 @@ body {
         display: block;
         background-color: #000; }
   .tone-poti .poti-value, .tone-poti .poti-label {
+    overflow: visible;
+    width: 100%;
     position: absolute;
     pointer-events: none;
+    color: #fff;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
     /*
-    left: 50%;
-    margin-right: -50%;
-    transform: translate(-50%, 0)*/ }
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, 0)*/ }
   .tone-poti .poti-value {
-    top: 0; }
-  .tone-poti .poti-label {
+    display: block;
     bottom: 0; }
+  .tone-poti .poti-label {
+    display: block;
+    top: 0; }
 
 .matrix {
   display: block; }

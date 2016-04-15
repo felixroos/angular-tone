@@ -23,17 +23,36 @@
       link:       function(scope, element) {
         scope.triggerOnActivate = (typeof scope.triggerOnActivate === 'undefined' ? false : scope.triggerOnActivate);
         scope.switchOnActivate = false;
-        
+
+        var performNotes = function(perform, notes) {
+          if (!scope.instrument) {
+            $log.error('pad: no instrument given to ' + perform);
+            return false;
+          }
+          if (!notes) {
+            $log.error('pad: no note given to ' + perform);
+            return false;
+          }
+          if (perform === 'activate') {
+            scope.instrument.triggerAttack(notes);
+          } else if (perform === 'deactivate') {
+            scope.instrument.triggerRelease(notes);
+            //scope.instrument.triggerRelease();
+          } else if (perform === 'trigger') {
+            scope.instrument.triggerAttackRelease(notes, "8n");
+          }
+        };
+
         var performAction = function(perform) {
           if (scope.action) {
             if (scope.action.note && scope.instrument) {
-              if (perform === 'activate') {
-                $log.debug(perform + ' note ' + scope.action.note);
-                scope.instrument.triggerAttack(scope.action.note);
-              } else if (perform === 'deactivate') {
-                scope.instrument.triggerRelease(scope.action.note);
-              } else if (perform === 'trigger') {
-                scope.instrument.triggerAttackRelease(scope.action.note, "8n");
+              if (scope.action.chord) {
+                var notes = teoria.note(scope.action.note).chord(scope.action.chord).notes();
+                notes.forEach(function(note) {
+                  performNotes(perform, note.scientific());
+                });
+              } else {
+                performNotes(perform, scope.action.note);
               }
             }
             if (scope.action.sample) {
@@ -68,7 +87,7 @@
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on) { // || scope.mode === 'trigger'
+              if (scope.mode === 'trigger' || scope.ngModel.on) { // ||
                 performAction('trigger');
               }
               if (scope.onTrigger) {
@@ -76,7 +95,7 @@
               }
             },
             activatePad:   function() {
-              if ((scope.mode === 'switch' || scope.ngModel.on) || scope.mode === 'hold') { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
+              if ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'hold') { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
                 performAction('activate');
               }
               scope.ngModel.active = true;
@@ -130,7 +149,7 @@
           }
         };
       },
-      template:   '<a href class="tone-pad" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\',\'hold\':mode===\'hold\'}"><ng-transclude></ng-transclude></a>'
+      template:   '<div class="tone-pad noselect" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\',\'hold\':mode===\'hold\'}"><ng-transclude></ng-transclude></a>'
     };
   });
 }());

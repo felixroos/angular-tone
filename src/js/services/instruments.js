@@ -15,11 +15,9 @@
           instrument = new Tone.MonoSynth(config || {}).toMaster();
           break;
         case 'poly':
-          instrument = new Tone.PolySynth(config.voices || 3, Tone.SimpleSynth, config || {
-              "oscillator": {
-                "partials": [0, 2, 3, 4]
-              }
-            }).toMaster();
+          instrument = new Tone.PolySynth(config.voices || 6, Tone.MonoSynth).toMaster();
+          console.debug(instrument.get());
+          instrument.set(config || {});
           break;
         default:
           $log.error('no valid instrument type: ', type);

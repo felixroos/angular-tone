@@ -6,6 +6,7 @@ body {
 
 .tone-pad {
   display: block;
+  cursor: pointer;
   position: relative;
   margin: 2px 2px;
   border: 2px solid #000;
@@ -29,8 +30,11 @@ body {
   }
 }
 
-.pads {
+.pads, .potis {
   display: flex;
+  .tone-poti {
+    padding: 0;
+  }
 }
 
 .tone-mixer {
@@ -43,18 +47,20 @@ body {
 .tone-poti {
   display: block;
   position: relative;
-  padding: 1em 0;
-  margin: 2px 2px;
+  padding: 0;
+  margin: 4px;
   font-size: 0.7em;
+  //overflow: hidden;
   .poti-container {
     position: relative;
+    text-align: center;
     left: 0;
     cursor: pointer;
     width: 0;
     height: 0;
-    margin: 4px;
+    margin: 0;
     border-width: 2px;
-    overflow: hidden;
+    //overflow: hidden;
     display: inline-block;
     .poti-rotator {
       opacity: 0.9;
@@ -81,17 +87,24 @@ body {
     }
   }
   .poti-value, .poti-label {
+    overflow: visible;
+    width: 100%;
     position: absolute;
-    pointer-events: none;/*
-    left: 50%;
-    margin-right: -50%;
-    transform: translate(-50%, 0)*/
+    pointer-events: none;
+    color: #fff;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    /*
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, 0)*/
   }
   .poti-value {
-    top: 0;
+    display: block;
+    bottom: 0;
   }
   .poti-label {
-    bottom: 0;
+    display: block;
+    top: 0;
   }
 }
 

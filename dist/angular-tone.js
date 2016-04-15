@@ -90,6 +90,7 @@
           }
           if (scope.synth) {
             scope.synth.triggerRelease(frequency);
+            scope.synth.triggerRelease();
           }
         };
       },
@@ -196,6 +197,7 @@
         mapping:      '@?',
         root:         '@',
         scale:        '@?',
+        scaleOffset:  '=?',
         octave:       '=?',
         instrument:   '=?',
         matrix:       '=?',
@@ -205,6 +207,7 @@
         scope.width = typeof scope.width === "number" ? scope.width : 4;
         scope.height = typeof scope.height === "number" ? scope.height : 4;
         scope.padSize = typeof scope.padSize === 'number' ? scope.padSize : 50;
+        scope.scaleOffset = typeof scope.scaleOffset === 'number' ? scope.scaleOffset : 0;
         scope.padMode = scope.padMode || 'switch';
 
         var mapping, control;
@@ -215,12 +218,19 @@
 
         var getNotes = function() {
           var root   = scope.root || "c", scale = scope.scale || "minorpentatonic", octave = scope.octave ||
-            4, notes = [];
+            4, notes = [], nextNotes;
           var measure = scope.width > scope.height ? scope.width : scope.height;
           //get all notes that fit into the matrix, starting from root
+          var scaleNotes = teoria.note(root + octave).scale(scale).simple();
+          var rootOctave = octave + Math.floor(scope.scaleOffset / scaleNotes.length);
           while (notes.length < measure) {
-            ++octave;
-            notes.push.apply(notes, teoria.note(root + octave).scale(scale).notes());
+            nextNotes = teoria.note(root + rootOctave).scale(scale).notes();
+            if (scope.scaleOffset && notes.length === 0) {
+              notes.push.apply(notes, nextNotes.slice(scope.scaleOffset % scaleNotes.length, nextNotes.length));
+            } else {
+              notes.push.apply(notes, nextNotes);
+            }
+            ++rootOctave;
           }
           return notes;
         };
@@ -304,9 +314,9 @@
         //TODO pagination in time to move left/right without changing notes and
         //TODO paginate mapping to display current page/octave!!!
 
-        scope.$watchGroup(['octave', 'scale'], function() {
-          //if(scope.octave&&scope.scale) {
-          $log.debug('changed octave (' + scope.octave + ') or scale (' + scope.scale + ')');
+        scope.$watchGroup(['octave', 'scale', 'scaleOffset', 'root'], function() {
+          /*$log.debug('changed octave (' + scope.octave + ') or scale (' + scope.scale + ') or scaleOffset (' +
+           scope.scaleOffset + ')');*/
           if (typeof scope.mapping === 'string') {
             mapping = scope.mapping.split(' ');
             if (mapping[0] === 'scale' || mapping[1] === 'scale') {
@@ -316,7 +326,6 @@
             }
           }
           scope.padData = loadPadData();
-          //}
         });
         scope.$watch('padSize', function() {
           $log.debug('changed pad size to ', scope.padSize);
@@ -367,6 +376,7 @@
             }
           },
           randomize:        function(chance) {
+            //TODO random mode with only one note at a time!!!
             var r = 0;
             scope.ngModel.clear();
             chance = chance || 0.3;
@@ -376,7 +386,7 @@
             }
           },
           changeScale:      function(scale) {
-            console.debug('change scale ', scale);
+            $log.debug('change scale to ' + scale);
             scope.scale = scale;
           },
           clear:            function() {
@@ -513,17 +523,36 @@
       link:       function(scope, element) {
         scope.triggerOnActivate = (typeof scope.triggerOnActivate === 'undefined' ? false : scope.triggerOnActivate);
         scope.switchOnActivate = false;
-        
+
+        var performNotes = function(perform, notes) {
+          if (!scope.instrument) {
+            $log.error('pad: no instrument given to ' + perform);
+            return false;
+          }
+          if (!notes) {
+            $log.error('pad: no note given to ' + perform);
+            return false;
+          }
+          if (perform === 'activate') {
+            scope.instrument.triggerAttack(notes);
+          } else if (perform === 'deactivate') {
+            scope.instrument.triggerRelease(notes);
+            //scope.instrument.triggerRelease();
+          } else if (perform === 'trigger') {
+            scope.instrument.triggerAttackRelease(notes, "8n");
+          }
+        };
+
         var performAction = function(perform) {
           if (scope.action) {
             if (scope.action.note && scope.instrument) {
-              if (perform === 'activate') {
-                $log.debug(perform + ' note ' + scope.action.note);
-                scope.instrument.triggerAttack(scope.action.note);
-              } else if (perform === 'deactivate') {
-                scope.instrument.triggerRelease(scope.action.note);
-              } else if (perform === 'trigger') {
-                scope.instrument.triggerAttackRelease(scope.action.note, "8n");
+              if (scope.action.chord) {
+                var notes = teoria.note(scope.action.note).chord(scope.action.chord).notes();
+                notes.forEach(function(note) {
+                  performNotes(perform, note.scientific());
+                });
+              } else {
+                performNotes(perform, scope.action.note);
               }
             }
             if (scope.action.sample) {
@@ -558,7 +587,7 @@
               $timeout(function() {
                 scope.ngModel.active = false;
               }, 200);
-              if (scope.ngModel.on) { // || scope.mode === 'trigger'
+              if (scope.mode === 'trigger' || scope.ngModel.on) { // ||
                 performAction('trigger');
               }
               if (scope.onTrigger) {
@@ -566,7 +595,7 @@
               }
             },
             activatePad:   function() {
-              if ((scope.mode === 'switch' || scope.ngModel.on) || scope.mode === 'hold') { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
+              if ((scope.mode === 'switch' && scope.ngModel.on) || scope.mode === 'hold') { // -! - || +&& + || scope.mode === 'trigger' || scope.mode === 'hold'
                 performAction('activate');
               }
               scope.ngModel.active = true;
@@ -620,7 +649,7 @@
           }
         };
       },
-      template:   '<a href class="tone-pad" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\',\'hold\':mode===\'hold\'}"><ng-transclude></ng-transclude></a>'
+      template:   '<div class="tone-pad noselect" ng-mousedown="clickedPad(action)" ng-mouseup="ngModel.deactivatePad(action)" ng-mouseleave="ngModel.deactivatePad(action)" ng-style="style" ng-class="{\'on\':ngModel.on,\'active\':ngModel.active,\'trigger\':mode===\'trigger\',\'hold\':mode===\'hold\'}"><ng-transclude></ng-transclude></a>'
     };
   });
 }());
@@ -635,24 +664,38 @@
         size:      '@?',
         min:       '=?',
         max:       '=?',
+        value:     '=?',
+        values:    '=?',
         color:     '@?',
         onTrigger: '=?',
         ngModel:   '=?',
         init:      '=?',
         data:      '=?',
         places:    '=?',
-        label:     '@?'
+        label:     '@?',
+        type:      '@?',
+        parameter: '@?',
+        target:    '=?'
 
       },
       link:     function(scope) {
-        scope.size = scope.size || 100;
+        //TODO 360 degree poti for circular values (e.g. offset)
+        scope.size = scope.size || 50;
         scope.places = scope.places || 0;
         scope.color = scope.color || '#fff';
         scope.min = scope.min || 0;
-        scope.max = scope.max || 100;
+        scope.ngModel = scope.ngModel || scope.init || scope.min;
+
+        if (typeof scope.values === 'object' && scope.values.length) {
+          scope.max = scope.values.length - 1;
+          scope.places = 0;
+          scope.value = scope.values[scope.ngModel];
+        } else {
+          scope.max = scope.max || 100;
+          delete scope.values;
+        }
         scope.range = scope.max - scope.min;
 
-        scope.ngModel = scope.ngModel || scope.init || scope.min;
         scope.style = {
           width:           scope.size + 'px',
           height:          scope.size + 'px',
@@ -668,6 +711,13 @@
           if (typeof scope.ngModel === 'number') {
             var deg = (scope.ngModel / scope.max * 270) - 135;
             scope.rotatorStyle.transform = 'rotate(' + deg + 'deg)';
+
+            if (scope.type && scope.parameter && scope.target) {
+              var change = {};
+              change[scope.type] = {};
+              change[scope.type][scope.parameter] = scope.ngModel;
+              scope.target.set(change);
+            }
           }
         });
 
@@ -688,14 +738,23 @@
             var raw = scope.startValue + (delta * scope.range * 1.5 / scope.size);
             raw = Math.round(raw * placeFactor) / placeFactor;
             raw = raw < scope.min ? scope.min : raw;
-            scope.ngModel = raw > scope.max ? scope.max : raw;
+            raw = raw > scope.max ? scope.max : raw;
+            scope.ngModel = raw;
+            if (scope.values) {
+              scope.value = scope.values[scope.ngModel];
+            }
           }
         };
+
       },
-      template: '<div class="tone-poti noselect" ng-style="{width:size+\'px\'}"><div ng-style="style" ng-mousedown="dragStart($event)" ng-mouseup="dragEnd()" ng-mousemove="dragMove($event)" ng-mouseleave="dragEnd()" ng-class="{\'active\':ngModel}" class="poti-container"><div class="poti-rotator" ng-style="rotatorStyle"></div></div><div class="poti-value">{{ngModel}}</div><div class="poti-label">{{label}}</div></div>' //
+      template: '<div class="tone-poti noselect" ng-style="{width:size+\'px\',height:size+\'px\'}"><div ng-style="style" ng-mousedown="dragStart($event)" ng-mouseup="dragEnd()" ng-mousemove="dragMove($event)" ng-mouseleave="dragEnd()" ng-class="{\'active\':ngModel}" class="poti-container"><div class="poti-rotator" ng-style="rotatorStyle"></div><div class="poti-value">{{value || ngModel}}</div><div class="poti-label">{{label}}</div></div></div>' //
     };
   });
 }());
+/**
+ * Created by felix on 10.04.16.
+ */
+
 /**
  * Created by felix on 07.04.16.
  */
@@ -713,11 +772,9 @@
           instrument = new Tone.MonoSynth(config || {}).toMaster();
           break;
         case 'poly':
-          instrument = new Tone.PolySynth(config.voices || 3, Tone.SimpleSynth, config || {
-              "oscillator": {
-                "partials": [0, 2, 3, 4]
-              }
-            }).toMaster();
+          instrument = new Tone.PolySynth(config.voices || 6, Tone.MonoSynth).toMaster();
+          console.debug(instrument.get());
+          instrument.set(config || {});
           break;
         default:
           $log.error('no valid instrument type: ', type);

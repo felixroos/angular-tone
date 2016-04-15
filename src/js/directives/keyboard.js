@@ -45,6 +45,7 @@
           }
           if (scope.synth) {
             scope.synth.triggerRelease(frequency);
+            scope.synth.triggerRelease();
           }
         };
       },

@@ -19,6 +19,7 @@
         mapping:      '@?',
         root:         '@',
         scale:        '@?',
+        scaleOffset:  '=?',
         octave:       '=?',
         instrument:   '=?',
         matrix:       '=?',
@@ -28,6 +29,7 @@
         scope.width = typeof scope.width === "number" ? scope.width : 4;
         scope.height = typeof scope.height === "number" ? scope.height : 4;
         scope.padSize = typeof scope.padSize === 'number' ? scope.padSize : 50;
+        scope.scaleOffset = typeof scope.scaleOffset === 'number' ? scope.scaleOffset : 0;
         scope.padMode = scope.padMode || 'switch';
 
         var mapping, control;
@@ -38,12 +40,19 @@
 
         var getNotes = function() {
           var root   = scope.root || "c", scale = scope.scale || "minorpentatonic", octave = scope.octave ||
-            4, notes = [];
+            4, notes = [], nextNotes;
           var measure = scope.width > scope.height ? scope.width : scope.height;
           //get all notes that fit into the matrix, starting from root
+          var scaleNotes = teoria.note(root + octave).scale(scale).simple();
+          var rootOctave = octave + Math.floor(scope.scaleOffset / scaleNotes.length);
           while (notes.length < measure) {
-            ++octave;
-            notes.push.apply(notes, teoria.note(root + octave).scale(scale).notes());
+            nextNotes = teoria.note(root + rootOctave).scale(scale).notes();
+            if (scope.scaleOffset && notes.length === 0) {
+              notes.push.apply(notes, nextNotes.slice(scope.scaleOffset % scaleNotes.length, nextNotes.length));
+            } else {
+              notes.push.apply(notes, nextNotes);
+            }
+            ++rootOctave;
           }
           return notes;
         };
@@ -127,9 +136,9 @@
         //TODO pagination in time to move left/right without changing notes and
         //TODO paginate mapping to display current page/octave!!!
 
-        scope.$watchGroup(['octave', 'scale'], function() {
-          //if(scope.octave&&scope.scale) {
-          $log.debug('changed octave (' + scope.octave + ') or scale (' + scope.scale + ')');
+        scope.$watchGroup(['octave', 'scale', 'scaleOffset', 'root'], function() {
+          /*$log.debug('changed octave (' + scope.octave + ') or scale (' + scope.scale + ') or scaleOffset (' +
+           scope.scaleOffset + ')');*/
           if (typeof scope.mapping === 'string') {
             mapping = scope.mapping.split(' ');
             if (mapping[0] === 'scale' || mapping[1] === 'scale') {
@@ -139,7 +148,6 @@
             }
           }
           scope.padData = loadPadData();
-          //}
         });
         scope.$watch('padSize', function() {
           $log.debug('changed pad size to ', scope.padSize);
@@ -190,6 +198,7 @@
             }
           },
           randomize:        function(chance) {
+            //TODO random mode with only one note at a time!!!
             var r = 0;
             scope.ngModel.clear();
             chance = chance || 0.3;
@@ -199,7 +208,7 @@
             }
           },
           changeScale:      function(scale) {
-            console.debug('change scale ', scale);
+            $log.debug('change scale to ' + scale);
             scope.scale = scale;
           },
           clear:            function() {
