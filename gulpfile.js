@@ -13,8 +13,11 @@ gulp.task('build:bowerfiles', function() {
   return gulp.src('./bower.json')
     .pipe(mainBowerFiles({
       overrides: {
-        "teoria": {
+        "teoria":  {
           main: "./teoria.js"
+        },
+        "vexflow": {
+          main: "./releases/vexflow-debug.js"
         }
       }
     }))
@@ -42,16 +45,16 @@ gulp.task('copy:assets', function() {
 gulp.task('inject', function() {
   var injectStyles = gulp.src([
     'dist/**/*.css'], {read: false});
-
+  
   var injectScripts = gulp.src([
-      'dist/vendor.js', 'dist/angular-tone.js', 'dist/angular-tone-demo.js'], {read: false})
+    'dist/vendor.js', 'dist/angular-tone.js', 'dist/angular-tone-demo.js'], {read: false})
     .pipe(debug());
-
+  
   var injectOptions = {
     addRootSlash: false,
     ignorePath:   ['dist']
   };
-
+  
   var wiredepOptions = {
     directory: 'bower_components',
     overrides: {
@@ -60,7 +63,7 @@ gulp.task('inject', function() {
       }
     }
   };
-
+  
   return gulp.src('src/index.html')
     .pipe(inject(injectStyles, injectOptions))
     .pipe(inject(injectScripts, injectOptions))

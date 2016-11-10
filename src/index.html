@@ -40,6 +40,8 @@
     <pad instrument="polySynth" action="{note:'E3'}" size="50" mode="trigger"></pad>
     <pad instrument="polySynth" action="{note:'G3'}" size="50" mode="switch"></pad>
     <pad instrument="polySynth" action="{note:'C4',chord:'major'}" size="50" mode="hold">cmaj</pad>
+
+    <pad instrument="polySynth" action="{note:'E4',chord:'maj'}" size="50" mode="hold">cmaj</pad>
   </div>
 
   <h2>Loop</h2>
@@ -97,6 +99,22 @@
 
   <p>The following Mixer controls the Synthesizers envelope and automatically generates potis for every parameter:</p>
   <mixer ng-model="polySynth.envelope"></mixer>
+  <h2>Dynamic Test</h2>
+  <input ng-model="staff" ng-init="staff='C4/q, d4, e4, f4'">
+  <score notes="staff"></score>
+  <!--<score ng-repeat=""-->
+  <div ng-repeat="scales in symmetricScales">
+    <h2>{{intervals[$index]}} Skalen</h2>
+    <score notes="scale" ng-repeat="scale in scales" note-length="{{amount}}"></score>
+  </div>
+  <div ng-repeat="scales in symmetricScales">
+
+    <h2>## {{intervals[$index]}}</h2>
+
+    <ul>
+      <li ng-repeat="scale in scales">- {{scale}}</li>
+    </ul>
+  </div>
 </div>
 <!-- inject:js -->
 <!-- endinject -->

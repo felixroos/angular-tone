@@ -24,7 +24,8 @@
     "angular": "^1.5.3",
     "tone": "*",
     "qwerty-hancock": "^0.5.1",
-    "teoria": "^2.2.0"
+    "teoria": "^2.2.0",
+    "vexflow": "^1.2.83"
   },
   "resolutions": {
     "jquery": "~2.2.0"
